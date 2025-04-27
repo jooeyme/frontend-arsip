@@ -1,0 +1,302 @@
+import React, { useState } from "react";
+import ComponentCard from "../../common/ComponentCard";
+import Label from "../Label";
+import Input from "../input/InputField";
+import Select from "../Select";
+import Button from "../../ui/button/Button";
+import { useDropzone } from "react-dropzone";
+import { createSuratMasuk } from "../../../modules/fetch/surat-masuk"
+import { FaRegFilePdf } from "react-icons/fa";
+
+export default function InputSuratMasuk() {
+  const [no_agenda_masuk, setNoAgenda] = useState('');
+  const [tgl_terima, setTgl_terima] = useState('');
+  const [no_surat, setNoSurat] = useState('');
+  const [tgl_surat, setTgl_surat] = useState('');
+  const [perihal, setPerihal] = useState('');
+  const [asal_surat, setAsal_surat] = useState('');
+  const [keterangan, setKeterangan] = useState('');
+  const [type_surat, setType_surat] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+
+
+  const options = [
+    { value: "marketing", label: "Marketing" },
+    { value: "template", label: "Template" },
+    { value: "development", label: "Development" },
+  ];
+
+  const onDrop = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0]; // Get the first file
+      setSelectedFile(file); // Store the file in state
+       // Automatically upload after selection
+    }
+  };
+
+
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { "application/pdf": [] }, // Accept only PDFs
+    });
+
+
+  const handleSelectChange = (value) => {
+    setType_surat(value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedFile) {
+        console.error("No file selected");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("no_agenda_masuk", no_agenda_masuk);
+    formData.append("tgl_terima", tgl_terima);
+    formData.append("no_surat", no_surat);
+    formData.append("tgl_surat", tgl_surat);
+    formData.append("perihal", perihal);
+    formData.append("asal_surat", asal_surat);
+    formData.append("keterangan", keterangan);
+    formData.append("type_surat", type_surat);
+
+    try {
+        await createSuratMasuk(formData)
+        console.log("Surat Masuk created successfully!");
+
+        setNoAgenda('');
+        setTgl_terima('');
+        setNoSurat('');
+        setTgl_surat('');
+        setPerihal('');
+        setAsal_surat('');
+        setKeterangan('');
+        setType_surat('');
+        setSelectedFile(null);
+    } catch (error) {
+        console.error(error);
+
+    }
+  }
+
+  const handleDeleteFile = () => {
+    setSelectedFile(null); // Menghapus file yang telah dipilih
+    };
+  return (
+    <form onSubmit={(e) => handleSubmit(e, selectedFile)}>
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        
+        <div className="space-y-6">
+            <ComponentCard title="Input Data Surat Masuk">
+            <div className="space-y-6">
+                <div>
+                <Label htmlFor="no_agenda_masuk">Nomor Agenda</Label>
+                <Input 
+                    type="text" 
+                    id="no_agenda_masuk"
+                    name="no_agenda_masuk"
+                    value={no_agenda_masuk}
+                    onChange={(e) => setNoAgenda(e.target.value)}
+                    placeholder="nomor agenda surat masuk"/>
+                </div>
+                <div>
+                <Label htmlFor="tgl_terima">Tanggal Diterima</Label>
+                <div className="relative">
+                    <Input
+                    type="date"
+                    id="tgl_terima"
+                    name="tgl_terima"
+                    value={tgl_terima}
+                    onChange={(e) => setTgl_terima(e.target.value)}
+                    />
+                    <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                    {/* <img src={CalenderIcon} alt="File Icon" /> */}
+                    {/* <CalenderIcon /> */}
+                    </span>
+                </div>
+                </div>
+                <div>
+                <Label htmlFor="no_surat">Nomor Surat</Label>
+                <Input 
+                    type="text" 
+                    id="no_surat"
+                    name="no_surat"
+                    value={no_surat}
+                    onChange={(e) => setNoSurat(e.target.value)}
+                    placeholder="nomor surat masuk" />
+                </div>
+                <div>
+                <Label htmlFor="tgl_surat">Tanggal Surat</Label>
+                <div className="relative">
+                    <Input
+                    type="date"
+                    id="tgl_surat"
+                    name="tgl_surat"
+                    value={tgl_surat}
+                    onChange={(e) => setTgl_surat(e.target.value)}
+                    />
+                    <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                    {/* <img src={TimeIcon} alt="File Icon" className=" outline-gray-500 dark:fill-gray-400"/> */}
+                    {/* <TimeIcon /> */}
+                    </span>
+                </div>
+                </div>
+                <div>
+                <Label htmlFor="perihal">Perihal</Label>
+                <Input 
+                    type="text" 
+                    id="perihal"
+                    name="perihal"
+                    value={perihal}
+                    onChange={(e) => setPerihal(e.target.value)}
+                    placeholder="Maksud tujuan surat masuk" />
+                </div>
+                <div>
+                <Label htmlFor="asal_surat">Asal Surat Masuk</Label>
+                <Input 
+                    type="text"
+                    id="asal_surat"
+                    name="asal_surat"
+                    value={asal_surat}
+                    onChange={(e) => setAsal_surat(e.target.value)} 
+                    placeholder="Instansi pengirim surat" />
+                </div>
+                <div>
+                <Label htmlFor="keterangan">Keterangan</Label>
+                <Input 
+                    type="text" 
+                    id="keterangan" 
+                    name="keterangan" 
+                    value={keterangan}
+                    onChange={(e) => setKeterangan(e.target.value)}
+                    placeholder="Ditujukan kepada" />
+                </div>
+                <div>
+                <Label htmlFor="type_surat">Jenis Surat</Label>
+                <Select
+                    options={options}
+                    placeholder="Select an option"
+                    onChange={handleSelectChange}
+                    className="dark:bg-dark-900"
+                />
+                </div>
+                
+            </div>
+            </ComponentCard>
+        </div>
+        <div className="space-y-6">
+            <ComponentCard title="Input Dokumen Surat Masuk">
+                <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
+                    
+                    {selectedFile ? (
+                        <div
+                        {...getRootProps()}
+                        className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
+                        ${
+                        isDragActive
+                            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
+                            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+                        }
+                        `}
+                        id="demo-upload"
+                        >
+
+                        <div className="dz-message flex flex-col items-center !m-0">
+                            {/* Icon Container */}
+                            <div className="mb-[22px] flex justify-center">
+                            <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                <FaRegFilePdf/>
+
+                            </div>
+                            </div>
+
+                            {/* Text Content */}
+                            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
+                            {selectedFile.name}
+                            </h4>
+
+                            <span 
+                            onClick={handleDeleteFile}
+                            className="font-medium underline text-theme-sm text-brand-500">
+                                Delete File
+                            </span>
+                        </div>
+                        </div>
+                    ) : (
+                        <div
+                            {...getRootProps()}
+                            className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
+                            ${
+                            isDragActive
+                                ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
+                                : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+                            }
+                            `}
+                            id="demo-upload"
+                            >
+                            {/* Hidden Input */}
+                            <input {...getInputProps()} />
+
+                        <div className="dz-message flex flex-col items-center !m-0">
+                            {/* Icon Container */}
+                            <div className="mb-[22px] flex justify-center">
+                            <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                <svg
+                                className="fill-current"
+                                width="29"
+                                height="28"
+                                viewBox="0 0 29 28"
+                                xmlns="http://www.w3.org/2000/svg"
+                                >
+                                <path
+                                    fillRule="evenodd"
+                                    clipRule="evenodd"
+                                    d="M14.5019 3.91699C14.2852 3.91699 14.0899 4.00891 13.953 4.15589L8.57363 9.53186C8.28065 9.82466 8.2805 10.2995 8.5733 10.5925C8.8661 10.8855 9.34097 10.8857 9.63396 10.5929L13.7519 6.47752V18.667C13.7519 19.0812 14.0877 19.417 14.5019 19.417C14.9161 19.417 15.2519 19.0812 15.2519 18.667V6.48234L19.3653 10.5929C19.6583 10.8857 20.1332 10.8855 20.426 10.5925C20.7188 10.2995 20.7186 9.82463 20.4256 9.53184L15.0838 4.19378C14.9463 4.02488 14.7367 3.91699 14.5019 3.91699ZM5.91626 18.667C5.91626 18.2528 5.58047 17.917 5.16626 17.917C4.75205 17.917 4.41626 18.2528 4.41626 18.667V21.8337C4.41626 23.0763 5.42362 24.0837 6.66626 24.0837H22.3339C23.5766 24.0837 24.5839 23.0763 24.5839 21.8337V18.667C24.5839 18.2528 24.2482 17.917 23.8339 17.917C23.4197 17.917 23.0839 18.2528 23.0839 18.667V21.8337C23.0839 22.2479 22.7482 22.5837 22.3339 22.5837H6.66626C6.25205 22.5837 5.91626 22.2479 5.91626 21.8337V18.667Z"
+                                />
+                                </svg>
+                            </div>
+                            </div>
+
+                            {/* Text Content */}
+                            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
+                            {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
+                            </h4>
+
+                            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
+                            Drag and drop your PNG, JPG, WebP, SVG images here or browse
+                            </span>
+
+                            <span className="font-medium underline text-theme-sm text-brand-500">
+                            Browse File
+                            </span>
+                        </div>
+                        </div>
+                    )}
+                    
+
+                    
+                </div>
+            </ComponentCard>
+        </div>
+
+        
+
+        
+        
+    </div>
+    <div className="flex justify-end mt-4">
+        <Button 
+                type="submit"
+                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+                Submit
+            </Button>
+    </div>
+    </form>
+  );
+}
