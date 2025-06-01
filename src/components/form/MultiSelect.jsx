@@ -1,19 +1,5 @@
 import React, { useState } from "react";
 
-// interface Option {
-//   value: string;
-//   text: string;
-//   selected: boolean;
-// }
-
-// interface MultiSelectProps {
-//   label: string;
-//   options: Option[];
-//   defaultSelected?: string[];
-//   onChange?: (selected: string[]) => void;
-//   disabled?: boolean;
-// }
-
 const MultiSelect = ({
   label,
   options,

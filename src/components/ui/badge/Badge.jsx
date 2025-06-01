@@ -7,6 +7,8 @@ const Badge = ({
   startIcon,
   endIcon,
   children,
+  className,
+  onClick
 }) => {
   const baseStyles =
     "inline-flex items-center px-2.5 py-0.5 justify-center gap-1 rounded-full font-medium";
@@ -40,6 +42,19 @@ const Badge = ({
       info: "bg-blue-light-500 text-white dark:text-white",
       light: "bg-gray-400 dark:bg-white/5 text-white dark:text-white/80",
       dark: "bg-gray-700 text-white dark:text-white",
+      // Surat Keluar
+      draft:                       'bg-gray-100 text-gray-800',
+      review:                      'bg-blue-100 text-blue-800',
+      waiting_for_signature:  'bg-yellow-100 text-yellow-800',
+      signed:                      'bg-purple-100 text-purple-800',
+      sent:                        'bg-green-100 text-green-800',
+      archived:                    'bg-gray-200 text-gray-600',
+      // Surat Masuk
+      diterima:                    'bg-blue-100 text-blue-800',
+      didisposisikan:              'bg-yellow-100 text-yellow-800',
+      diproses:                    'bg-orange-100 text-orange-800',
+      selesai:                     'bg-green-100 text-green-800',
+      waiting_to_archive:          'bg-yellow-200 text-yellow-900',
     },
   };
 
@@ -47,9 +62,14 @@ const Badge = ({
   const sizeClass = sizeStyles[size];
   const colorStyles = variants[variant]?.[color];
 
+  const handleClick = (event) => {
+    if (onClick) onClick();
+  };
+
   return (
-    <span className={`${baseStyles} ${sizeClass} ${colorStyles}`}
-    aria-label={children ? undefined : color}>
+    <span className={`${baseStyles} ${sizeClass} ${colorStyles} ${className}`}
+    aria-label={children ? undefined : color}
+    onClick={handleClick}>
       {startIcon && <span className="mr-1">{startIcon}</span>}
       {children}
       {endIcon && <span className="ml-1">{endIcon}</span>}

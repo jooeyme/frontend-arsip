@@ -1,102 +1,313 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Input from "../input/InputField";
-import Select from "../Select";
+// import Select from "../Select";
+import MultiSelect from "../MultiSelect";
+import Select from 'react-select';
 import Button from "../../ui/button/Button";
 import { useDropzone } from "react-dropzone";
 import { createSuratKeluar } from "../../../modules/fetch/surat-keluar"; 
 import { FaRegFilePdf } from "react-icons/fa";
+import Swal from "sweetalert2";
+import { getAllKlasifikasi, createKlasifikasi } from "../../../modules/fetch/klasifikasi";
+import { getAllTujuan, createTujuan } from "../../../modules/fetch/tujuan";
+import DropzoneDocument from "./InputDocument";
 
 export default function InputSuratKeluar() {
-  const [no_agenda_keluar, setNoAgenda] = useState('');
-  const [no_surat, setNoSurat] = useState('');
-  const [tgl_surat, setTgl_surat] = useState('');
-  const [perihal, setPerihal] = useState('');
-  const [ditujukan, setDitujukan] = useState('');
-  const [keterangan, setKeterangan] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+    const [formValues, setFormValues] = useState({
+        tgl_surat: '',
+        perihal: '',
+        keterangan: '',
+        jenis: '',
+        sifat: '',
+        tembusan: '',
+        ditujukan: '',
+        klasId: ''
+    });
+    const [drafts, setDrafts] = useState(null);
+    const [lampirans, setLampirans] = useState([]);
+    const [input, setInput] = useState('');   
 
-  const onDrop = (acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0]; // Get the first file
-      setSelectedFile(file); // Store the file in state
-       // Automatically upload after selection
-    }
+    // creatable classification
+    const [classOptions, setClassOptions] = useState([]);
+    const [createMode, setCreateMode] = useState(false);
+    const [newKode, setNewKode] = useState('');
+    const [newDesc, setNewDesc] = useState('');
+    const containerRef = useRef(null);
+
+    // destination (tujuan)
+    const [destOptions, setDestOptions] = useState([]);
+    const [createDestMode, setCreateDestMode] = useState(false);
+    const [newDestName, setNewDestName] = useState('');
+    const destRef = useRef(null);
+
+    const jenisOptions = [
+        { value: "surat_umum", label: "Surat Umum" },
+        { value: "surat_keputusan", label: "Surat Keputusan" },
+        { value: "surat_tugas", label: "Surat Tugas" },
+        { value: "memo", label: "Memo" },
+        { value: "permohonan", label: "Permohonan" },
+        { value: "pemberitahuan", label: "Pemberitahuan" },
+    ];
+
+    const sifatOptions = [
+        { value: "surat_rahasia", label: "Surat Rahasia" },
+        { value: "penting", label: "Penting" },
+        { value: "sangat_penting", label: "Sangat Penting" },
+        { value: "biasa", label: "Biasa" },
+    ]
+
+  const handleSelectChangeJenis = (value) => {
+      setFormValues(prev => ({
+      ...prev,
+      jenis: value.value,
+    }));
+  };
+ 
+  const handleSelectChangeSifat = (value) => {
+    console.log("apa isi sifat:", value.value);
+      setFormValues(prev => ({
+      ...prev,
+      sifat: value.value
+    }));
   };
 
-const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "application/pdf": [] }, // Accept only PDFs
-});
-
-
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!selectedFile) {
-        console.error("No file selected");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("no_agenda_keluar", no_agenda_keluar);
-    formData.append("no_surat", no_surat);
-    formData.append("tgl_surat", tgl_surat);
-    formData.append("perihal", perihal);
-    formData.append("ditujukan", ditujukan)
-    formData.append("keterangan", keterangan);
-
-
-    try {
-        await createSuratKeluar(formData)
-        console.log("Surat Masuk created successfully!");
-
-        setNoAgenda('');
-        setDitujukan('');
-        setNoSurat('');
-        setTgl_surat('');
-        setPerihal('');
-        setKeterangan('');
-        setSelectedFile(null);
-    } catch (error) {
-        console.error(error);
-
-    }
-  }
-
-  const handleDeleteFile = () => {
-    setSelectedFile(null); // Menghapus file yang telah dipilih
+  const handleSelectChangeKlas = (value) => {
+    console.log("apa isi klasId:", value.value)
+        setFormValues(prev => ({
+        ...prev,
+        klasId: value.value
+        }));
     };
+
+    async function fetchKlas() {
+        try {
+            const res = await getAllKlasifikasi();
+            const opts = res.map(item => ({
+                value: item.id,
+                label: item.deskripsi
+            }));
+            setClassOptions(opts);
+
+        } catch (error) {
+            console.error("gagal fetch klasifikasi", error);
+        }
+    }
+
+    async function fetchDest() {
+            try {
+                const dest = await getAllTujuan();
+                const destOpts = dest.map(item => ({
+                  value: item.nama,
+                  label: item.nama
+                }));
+                setDestOptions(destOpts);
+
+            } catch (error) {
+                console.error("gagal fetch tujuan", error);
+            }
+        }
+
+    useEffect(() => {
+      fetchKlas();
+      fetchDest();
+      function onClickOutside(e) {
+        if (containerRef.current && !containerRef.current.contains(e.target)) {
+          setCreateMode(false);
+        }
+
+        if (destRef.current && !destRef.current.contains(e.target)) {
+        setCreateDestMode(false);
+        }
+      }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+    const handleAddClassClick = () => {
+        setCreateMode(true);
+        setNewKode('');
+        setNewDesc('');
+    };
+
+    const handleAddClass = async() => {
+        if (!newKode.trim() || !newDesc.trim()) return;
+        try {
+            const created = await createKlasifikasi({ kode: newKode, deskripsi: newDesc });
+            // update options
+            const option = { value: created.id, label: created.deskripsi };
+            setClassOptions(prev => [...prev, option]);
+            setFormValues(prev => ({ ...prev, klasId: created.id }));
+            setCreateMode(false);
+            fetchKlas();
+        } catch (err) {
+            console.error('Error creating klasifikasi', err);
+            Swal.fire('Error', err.message || 'Gagal membuat klasifikasi', 'error');
+        }
+    }
+
+    const onSelectDest = v => { 
+      console.log("apa isi tujuan:", v.map(o => o.value))
+      setFormValues(prev => (
+        { 
+          ...prev, 
+          ditujukan: v ? v.map(o => o.value) : [] }
+      )); 
+      setCreateDestMode(false); 
+    };
+    
+    const onAddDest = () => { 
+      setCreateDestMode(true); 
+      setNewDestName(''); 
+    };
+
+    const handleAddDest = async() => {
+      if (!newDestName) return;
+      try {
+        console.log("nama tujuan baru:", newDestName)
+        const created = await createTujuan({nama: newDestName});
+        const option = { value: created.nama, label: created.nama };
+        setDestOptions(prev => [...prev, option]);
+        setFormValues(prev => ({...prev, ditujukan: created.nama}));
+        setCreateDestMode(false);
+        fetchDest();
+      } catch (error) {
+        console.error('Error creating klasifikasi', error);
+        Swal.fire('Error', error.message || 'Gagal membuat klasifikasi', 'error');
+      }
+    }
+
+    const handleChange = (e) => {
+        setFormValues({
+        ...formValues,
+        [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+
+      console.log("form value:", formValues)
+      try {
+          const data = new FormData();
+          Object.entries(formValues).forEach(([Key, val]) => {
+              if (val !== undefined && val !== null) data.append(Key, val);
+          });
+
+          if (drafts) data.append('draft', drafts);
+          lampirans.forEach((file) => data.append('lampiran', file));
+
+          Swal.fire({
+              title: 'Memproses...',
+              text: 'Mohon tunggu sebentar',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+          await createSuratKeluar(data)
+          console.log("Surat Masuk created successfully!");
+
+          Swal.close();
+
+          Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: 'Data Surat Keluar berhasil ditambahkan!',
+            });
+
+          setFormValues({
+              tgl_surat: '',
+              perihal: '',
+              keterangan: '',
+              jenis: '',
+              sifat: '',
+              tembusan: '',
+              ditujukan: '',
+              klasId: ''
+          });
+          setDrafts(null);
+          setLampirans([]);
+      } catch (error) {
+          console.error(error);
+          Swal.close();
+          Swal.fire({
+              icon: 'error',
+              title: 'Gagal!',
+              text: error.message || 'Terjadi kesalahan saat input data.',
+            });
+      }
+    }
+    
   return (
-    <form onSubmit={(e) => handleSubmit(e, selectedFile)}>
+    <form onSubmit={handleSubmit}>
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         
         <div className="space-y-6">
             <ComponentCard title="Input Data Surat Keluar">
-            <div className="space-y-6">
-                <div>
-                <Label htmlFor="no_agenda_keluar">Nomor Agenda</Label>
-                <Input 
-                    type="text" 
-                    id="no_agenda_keluar"
-                    name="no_agenda_keluar"
-                    value={no_agenda_keluar}
-                    onChange={(e) => setNoAgenda(e.target.value)}
-                    placeholder="nomor agenda surat masuk"/>
+            <div ref={containerRef} className="space-y-6">
+                <div> 
+                <Label htmlFor="klasId">Klasifikasi Surat</Label>
+                <div className="flex gap-4">
+                <Select
+                    options={classOptions}
+                    placeholder="Select an option"
+                    onChange={handleSelectChangeKlas}
+                    disabled={createMode}
+                    value={classOptions.find(o => o.value === formValues.klasId)}
+                    className="basic-multi-select w-full"
+                />
+                 {!createMode && (
+                <Button size="sm" variant="outline" onClick={handleAddClassClick}>
+                  +Tambah
+                </Button>
+              )}
+              </div>
+
+              {createMode && (
+                <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="">
+                  <Label htmlFor="newKode">Kode</Label>
+                  <Input
+                    type="text"
+                    id="newKode"
+                    placeholder="Kode"
+                    value={newKode}
+                    onChange={e => setNewKode(e.target.value)}
+                  />
+                  </div>
+                  <div className="">
+                  <Label htmlFor="newDesc">Deskripsi</Label>
+                  <Input
+                    type="text"
+                    id="newDesc"
+                    placeholder="Deskripsi"
+                    value={newDesc}
+                    onChange={e => setNewDesc(e.target.value)}
+                  />
+                  </div>
+                  <div className="flex items-end space-x-2 md:col-span-2">
+                    <Button 
+                      type="button" 
+                      variant="submit" 
+                      onClick={handleAddClass}
+                    >
+                      Save
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setCreateMode(false)}
+                      >
+                        Cancel
+                      </Button>
+                  </div>
                 </div>
-                <div>
-                <Label htmlFor="no_surat">Nomor Surat</Label>
-                <Input 
-                    type="text" 
-                    id="no_surat"
-                    name="no_surat"
-                    value={no_surat}
-                    onChange={(e) => setNoSurat(e.target.value)}
-                    placeholder="nomor surat masuk" />
-                </div>
+              )}
+              </div>
+
                 <div>
                 <Label htmlFor="tgl_surat">Tanggal Surat</Label>
                 <div className="relative">
@@ -104,13 +315,10 @@ const { getRootProps, getInputProps, isDragActive } = useDropzone({
                     type="date"
                     id="tgl_surat"
                     name="tgl_surat"
-                    value={tgl_surat}
-                    onChange={(e) => setTgl_surat(e.target.value)}
+                    value={formValues.tgl_surat}
+                    onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
                     />
-                    <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-                    {/* <img src={TimeIcon} alt="File Icon" className=" outline-gray-500 dark:fill-gray-400"/> */}
-                    {/* <TimeIcon /> */}
-                    </span>
                 </div>
                 </div>
                 <div>
@@ -119,19 +327,9 @@ const { getRootProps, getInputProps, isDragActive } = useDropzone({
                     type="text" 
                     id="perihal"
                     name="perihal"
-                    value={perihal}
-                    onChange={(e) => setPerihal(e.target.value)}
+                    value={formValues.perihal}
+                    onChange={handleChange}
                     placeholder="Maksud tujuan surat masuk" />
-                </div>
-                <div>
-                <Label htmlFor="ditujukan">Ditujukan</Label>
-                <Input 
-                    type="text" 
-                    id="ditujukan"
-                    name="ditujukan"
-                    value={ditujukan}
-                    onChange={(e) => setDitujukan(e.target.value)}
-                    placeholder="Ditujukan kepada" />
                 </div>
                 <div>
                 <Label htmlFor="keterangan">Keterangan</Label>
@@ -139,111 +337,106 @@ const { getRootProps, getInputProps, isDragActive } = useDropzone({
                     type="text" 
                     id="keterangan" 
                     name="keterangan" 
-                    value={keterangan}
-                    onChange={(e) => setKeterangan(e.target.value)}
+                    value={formValues.keterangan}
+                    onChange={handleChange}
                     placeholder="Ditujukan kepada" />
                 </div>
-                
-                
+                <div>
+                <Label htmlFor="jenis">Jenis</Label>
+                <Select
+                    options={jenisOptions}
+                    placeholder="Select an option"
+                    onChange={handleSelectChangeJenis}
+                    className="dark:bg-dark-900"
+                />
+                </div>
+                <div>
+                <Label htmlFor="sifat">Sifat</Label>
+                <Select
+                    options={sifatOptions}
+                    placeholder="Select an option"
+                    onChange={handleSelectChangeSifat}
+                    className="dark:bg-dark-900"
+                />
+                </div>
+                {/* <div>
+                <Label htmlFor="penerima">Penerima</Label>
+                <Input 
+                    type="text" 
+                    id="penerima"
+                    name="penerima"
+                    value={formValues.penerima}
+                    onChange={handleChange}
+                    placeholder="" />
+                </div> */}
+                <div>
+                <Label htmlFor="tembusan">Tembusan</Label>
+                <Input 
+                    type="text" 
+                    id="tembusan"
+                    name="tembusan"
+                    value={formValues.tembusan}
+                    onChange={handleChange}
+                    placeholder="" />
+                </div>
+
+                <div ref={destRef}>
+                <Label htmlFor="ditujukan">Ditujukan</Label>
+                <div className="flex gap-4">
+                <Select
+                  isMulti
+                  options={destOptions}
+                  defaultSelected={[]}
+                  onChange={onSelectDest}
+                  className="basic-multi-select w-full"
+                />
+                  {!createDestMode && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onAddDest}
+                    >
+                      +Tambah
+                    </Button>
+                  )}
+                  </div>
+
+                  {createDestMode && (
+                  <div className="flex gap-2 items-end">
+                    <div className="">
+                    <Label htmlFor="newDestName">Nama Tujuan</Label>
+                    <Input 
+                      type="text"
+                      placeholder="Nama Tujuan" 
+                      value={newDestName} 
+                      onChange={e => setNewDestName(e.target.value)} 
+                    />
+                    </div>
+                    <Button 
+                      type="button"
+                      onClick={handleAddDest} 
+                      variant="submit">
+                        Save
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setCreateDestMode(false)}>
+                        Cancel
+                    </Button>
+                  </div>
+                  )}
+                </div>
+
             </div>
             </ComponentCard>
         </div>
-        <div className="space-y-6">
-            <ComponentCard title="Input Dokumen Surat Keluar">
-                <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
-                    
-                    {selectedFile ? (
-                        <div
-                        {...getRootProps()}
-                        className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
-                        ${
-                        isDragActive
-                            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-                            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
-                        }
-                        `}
-                        id="demo-upload"
-                        >
 
-                        <div className="dz-message flex flex-col items-center !m-0">
-                            {/* Icon Container */}
-                            <div className="mb-[22px] flex justify-center">
-                            <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                                <FaRegFilePdf/>
-
-                            </div>
-                            </div>
-
-                            {/* Text Content */}
-                            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-                            {selectedFile.name}
-                            </h4>
-
-                            <span 
-                            onClick={handleDeleteFile}
-                            className="font-medium underline text-theme-sm text-brand-500">
-                                Delete File
-                            </span>
-                        </div>
-                        </div>
-                    ) : (
-                        <div
-                            {...getRootProps()}
-                            className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
-                            ${
-                            isDragActive
-                                ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-                                : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
-                            }
-                            `}
-                            id="demo-upload"
-                            >
-                            {/* Hidden Input */}
-                            <input {...getInputProps()} />
-
-                        <div className="dz-message flex flex-col items-center !m-0">
-                            {/* Icon Container */}
-                            <div className="mb-[22px] flex justify-center">
-                            <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                                <svg
-                                className="fill-current"
-                                width="29"
-                                height="28"
-                                viewBox="0 0 29 28"
-                                xmlns="http://www.w3.org/2000/svg"
-                                >
-                                <path
-                                    fillRule="evenodd"
-                                    clipRule="evenodd"
-                                    d="M14.5019 3.91699C14.2852 3.91699 14.0899 4.00891 13.953 4.15589L8.57363 9.53186C8.28065 9.82466 8.2805 10.2995 8.5733 10.5925C8.8661 10.8855 9.34097 10.8857 9.63396 10.5929L13.7519 6.47752V18.667C13.7519 19.0812 14.0877 19.417 14.5019 19.417C14.9161 19.417 15.2519 19.0812 15.2519 18.667V6.48234L19.3653 10.5929C19.6583 10.8857 20.1332 10.8855 20.426 10.5925C20.7188 10.2995 20.7186 9.82463 20.4256 9.53184L15.0838 4.19378C14.9463 4.02488 14.7367 3.91699 14.5019 3.91699ZM5.91626 18.667C5.91626 18.2528 5.58047 17.917 5.16626 17.917C4.75205 17.917 4.41626 18.2528 4.41626 18.667V21.8337C4.41626 23.0763 5.42362 24.0837 6.66626 24.0837H22.3339C23.5766 24.0837 24.5839 23.0763 24.5839 21.8337V18.667C24.5839 18.2528 24.2482 17.917 23.8339 17.917C23.4197 17.917 23.0839 18.2528 23.0839 18.667V21.8337C23.0839 22.2479 22.7482 22.5837 22.3339 22.5837H6.66626C6.25205 22.5837 5.91626 22.2479 5.91626 21.8337V18.667Z"
-                                />
-                                </svg>
-                            </div>
-                            </div>
-
-                            {/* Text Content */}
-                            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-                            {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
-                            </h4>
-
-                            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
-                            Drag and drop your PNG, JPG, WebP, SVG images here or browse
-                            </span>
-
-                            <span className="font-medium underline text-theme-sm text-brand-500">
-                            Browse File
-                            </span>
-                        </div>
-                        </div>
-                    )}
-                    
-
-                    
-                </div>
-            </ComponentCard>
-        </div>
-
-        
+        <DropzoneDocument 
+            onAttachmentsChange={setLampirans}
+            onMainFileChange={setDrafts}
+            showLampiran={true}
+        />
 
         
         

@@ -62,21 +62,6 @@ const AppHeader = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    const keyword = inputRef.current.value;
-    console.log("apa isi keyword:", keyword)
-    try {
-      const results = await searchSuratMasuk(keyword);
-      console.log("apa isi result search:", results)
-      setResults(results);
-    } catch (err) {
-      console.error("Error:", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
   
 
   return (
@@ -85,7 +70,7 @@ const AppHeader = () => {
       <div className="flex flex-col items-center justify-between flex-grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
-            className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="items-center cursor-pointer justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -125,13 +110,13 @@ const AppHeader = () => {
 
           <Link to="/" className="lg:hidden">
             <img
-              className="dark:hidden"
-              src="./images/logo/logo.svg"
+              className="dark:hidden max-w-xs"
+              src="./images/logo/E1 - Logo IPB University Vertical Departemen Warna-Lo.png"
               alt="Logo"
             />
             <img
               className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              src="./images/logo/E1 - Logo IPB University Vertical Departemen Putih-Lo.png"
               alt="Logo"
             />
           </Link>
@@ -156,19 +141,13 @@ const AppHeader = () => {
             </svg>
           </button>
 
-
-          
-  
-        </div>
-
-        
-    
+        </div>    
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-          <div className="flex items-center gap-2 2xsm:gap-3">
+          <div className="flex items-center gap-4 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}
             <LiveDateTime />
             {/* <ThemeProvider>

@@ -1,8 +1,8 @@
 import { instance } from "../../axios";
 
-async function createDisposisi(formData) {
+async function createDisposisi(payload) {
     try {
-        const response = await instance.create(`/disposisi/new`, formData);
+        const response = await instance.post(`/disposisi/new`, payload);
         return response.data;
     } catch (error) {
         throw new Error(error.response.data.message || "Something went wrong");
@@ -49,10 +49,21 @@ async function editDisposisi(id, formData) {
     }
 }
 
+async function updateDisposisiStatus(id, formData) {
+    try {
+        const response = await instance.patch(`/disposisi/${id}/status`, formData);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || "Something went wrong");
+    }
+}
+
+
 export {
     createDisposisi,
     getAllDisposisi,
     getByIdDisposisi,
     deleteDisposisi,
-    editDisposisi
+    editDisposisi,
+    updateDisposisiStatus
 }

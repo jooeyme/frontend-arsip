@@ -1,11 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Link } from "react-router";
+import socket from "../../modules/socket";
+import { getAllLog, markAsRead } from "../../modules/fetch/log-perubahan";
+import { formatDistanceToNow } from 'date-fns';
+import { id } from 'date-fns/locale'; // jika ingin dalam Bahasa Indonesia
+import { PlusIcon, PencilIcon, TrashBinIcon, TimeIcon } from "../icons";
+
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const [logs, setLogs] = useState([]);
+
+  const fetchLog = async () => {
+    try {
+      const response = await getAllLog();
+      setLogs(response.data);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    }
+  };
+
+  useEffect(() => {
+    console.log("NotificationDropdown mounted");
+    fetchLog();
+
+    socket.on('log-perubahan', (data) => {
+      console.log('Log perubahan diterima:', data);
+
+      setLogs((prevLogs) => [
+        { id: prevLogs.length + 1, ...data.log, action: data.action },
+        ...prevLogs,
+      ]);
+    });
+
+    return () => {
+      socket.off('log-perubahan');
+    };
+    
+  }, []);
+
+  const markRead = async (id) => {
+    try {
+      await markAsRead(id);
+      // Update state lokal langsung
+      setLogs((prevLogs) =>
+        prevLogs.map((log) =>
+          log.id === id ? { ...log, isRead: true } : log
+        )
+      );
+    } catch (err) {
+      console.error("Gagal menandai log:", err);
+    }
+  };
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -13,16 +62,26 @@ export default function NotificationDropdown() {
 
   function closeDropdown() {
     setIsOpen(false);
+
   }
 
   const handleClick = () => {
     toggleDropdown();
     setNotifying(false);
   };
+
+  const getActionIcon = (jenisSurat) => {
+    if (jenisSurat === 'masuk') return <img src={PlusIcon} alt="created" width={40} />;
+    if (jenisSurat === 'keluar') return <img src={PencilIcon} alt="updated" width={40} />;
+    if (jenisSurat === 'deleted') return <img src={TrashBinIcon} alt="deleted" width={40} />;
+    return null;
+  };
+
+  
   return (
     <div className="relative">
       <button
-        className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-gray-700 h-11 w-11 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        className="relative flex items-center cursor-pointer justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-gray-700 h-11 w-11 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         onClick={handleClick}
       >
         <span
@@ -76,44 +135,69 @@ export default function NotificationDropdown() {
             </svg>
           </button>
         </div>
-        <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
+        
           {/* Example notification items */}
-          <li>
+          {logs.length === 0 ? (
+            <p>Belum ada perubahan</p>
+          ) : (
+          <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
+          {logs
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map((log) => (
+            <li key={log.id}>
             <DropdownItem
-              onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              onItemClick={() => markRead(log.id)}
+              className="flex gap-3 cursor-pointer rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
             >
               <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
-                <img
+                {/* <img
                   width={40}
                   height={40}
                   src="/images/user/user-02.jpg"
                   alt="User"
                   className="w-full overflow-hidden rounded-full"
-                />
+                /> */}
+
+                {getActionIcon(log.jenisSurat)}
+                {!log.isRead && (
+                  <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-white" />
+                )}
                 <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
               <span className="block">
                 <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400">
+                  {/* <span className="font-medium text-gray-800 dark:text-white/90 mr-4">
+                  {log.action === 'created' ? 'Penambahan' : log.action === 'updated' ? 'Perubahan' : 'Penghapusan'}
+                  </span> */}
+                  
                   <span className="font-medium text-gray-800 dark:text-white/90">
-                    Terry Franci
+                    {log.keterangan}
                   </span>
-                  requests permission to change
-                  <span className="font-medium text-gray-800 dark:text-white/90">
-                    Project - Nganter App
-                  </span>
+                  {!log.isRead && (
+                    <span className="ml-2 text-xs text-white bg-blue-500 rounded px-2 py-0.5">
+                      Baru
+                    </span>
+                  )}
                 </span>
 
                 <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                  <span>Project</span>
+                  <span>{log.suratId}</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>5 min ago</span>
+                  <span>{formatDistanceToNow(new Date(log.createdAt), { addSuffix: true, locale: id })}</span>
                 </span>
               </span>
             </DropdownItem>
           </li>
+          ))}
+          
+          </ul>
+          ) }
+          
 
+          {/*
+          <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
@@ -222,9 +306,11 @@ export default function NotificationDropdown() {
                 </span>
               </span>
             </DropdownItem>
-          </li>
+          </li> 
+          
+          */}
 
-          <li>
+          {/* <li>
             <DropdownItem
               className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
               onItemClick={closeDropdown}
@@ -367,11 +453,11 @@ export default function NotificationDropdown() {
                 </span>
               </span>
             </DropdownItem>
-          </li>
+          </li> */}
           {/* Add more items as needed */}
-        </ul>
+        
         <Link
-          to="/"
+          to="/all-logs"
           className="block px-4 py-2 mt-3 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
         >
           View All Notifications

@@ -1,23 +1,28 @@
-import React, {useState, useCallback} from "react";
+import React, { useState, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import SuratMasukTable from "../../components/tables/SuratMasukTable";
 import SearchBar from "../../components/form/SearchBar";
 import { searchSuratMasuk } from "../../modules/fetch/surat-masuk";
-import { useNavigate } from "react-router-dom";
-import Button from "../../components/ui/button/Button";
-//import PageMeta from "../../components/common/PageMeta";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function TableSuratMasuk() {
+  const { user, loading } = useAuth();
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  
-  const handleSearch = useCallback(async (keyword) => {
-    console.log("Mencari:", keyword);
+  const [keyword, setKeyword] = useState(""); 
+  const [loadingSearch, setLoading] = useState(false);
+
+  const handleSearch = useCallback(async (kw) => {
+    console.log("Mencari:", kw);
+    setKeyword(kw);
+    if (kw.trim().length < 3) {
+      // clear hasil search kalau kurang dari 3 karakter
+      return setResults([]);
+    }
     setLoading(true);
     try {
-      const results = await searchSuratMasuk(keyword);
+      const results = await searchSuratMasuk(kw);
       setResults(results);
     } catch (err) {
       console.error("Error:", err.message);
@@ -26,34 +31,40 @@ export default function TableSuratMasuk() {
     }
   }, []);
 
-  const handleSelectItem = (id) => {
-    navigate(`/detail-surat-masuk/${id}`);
-  };
+  console.log('user:', user)
+  console.log('user:', loading)
 
-  const handleInput = () => {
-    navigate(`/form-surat-masuk`);
-  }
+  if (loading)   return <p>Loading…</p>;
+  if (!user)     return <Navigate to="/signin" />
+    
+      const role = user.role; 
+      const me = user.nama_lengkap;
+
 
   return (
     <>
-      {/* <PageMeta
-        title="React.js Basic Tables Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      /> */}
       <PageBreadcrumb pageTitle="Surat Masuk" />
       <div className="space-y-6">
         <ComponentCard title="Tabel Surat Masuk">
-        <Button 
-            size="sm"
-            variant="outline"
-            onClick={handleInput}
-        >
-            Input Surat Masuk
-        </Button>
-        <div className="flex justify-end">
-          <SearchBar onSearch={handleSearch} results={results} loading={loading} onSelect={handleSelectItem}/>
+          {/* <Button onClick={handleInput} variant="outline">
+            <PlusCircle /> Tambah Surat Masuk
+          </Button> */}
+          <div className="flex justify-end">
+            <SearchBar
+              keyword={keyword}
+              onKeywordChange={setKeyword}
+              onSearch={handleSearch}
+              loading={loadingSearch}
+              
+            />
           </div>
-          <SuratMasukTable />
+          <SuratMasukTable 
+            me={role}
+            searchResults={results}
+            loadingSearch={loadingSearch}
+            keyword={keyword}  
+            
+            />
         </ComponentCard>
       </div>
     </>

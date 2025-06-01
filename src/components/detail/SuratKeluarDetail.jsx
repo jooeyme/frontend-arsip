@@ -4,43 +4,59 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { getByIdSuratKeluar, editSuratKeluar } from "../../modules/fetch/surat-keluar";
+import { generateNumber, editSuratKeluar, uploadSigned, archiveSuratKeluar } from "../../modules/fetch/surat-keluar";
 import { useParams } from "react-router-dom";
 import Select from "../form/Select";
 import Badge from "../ui/badge/Badge";
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import Swal from "sweetalert2";
+import { createReview, completeRevision } from '../../modules/fetch/review';
+import DropzoneDocument from "../form/form-surat/InputDocument";
 
-// Draft → Surat masih dalam tahap penyusunan dan belum diajukan.
-// Menunggu Persetujuan → Surat sedang menunggu verifikasi dari pihak berwenang (misalnya kepala bagian).
-// Disetujui → Surat telah disetujui dan siap dikirim.
-// Dikirim → Surat telah dikirim ke tujuan.
-// Diterima → Pihak penerima telah mengonfirmasi bahwa surat sudah diterima.
-// Diarsipkan → Surat telah selesai diproses dan disimpan dalam arsip.
-// Dibatalkan → Pengiriman surat dibatalkan karena alasan tertentu.
+
 const locale = id
-export default function SuratKeluarDetail({data, refreshData}) {
-  const { id } = useParams()
-  const { isOpen, openModal, closeModal } = useModal();
-  const [no_agenda_keluar, setNoAgenda] = useState(data.no_agenda_keluar);
+export default function SuratKeluarDetail({id, me, data, refreshData}) {
+  const modal = useModal();
+  const updateModal = useModal();
+  const signModal = useModal();
   const [no_surat, setNoSurat] = useState(data.no_surat);
   const [tgl_surat, setTgl_surat] = useState(data.tgl_surat);
   const [perihal, setPerihal] = useState(data.perihal);
   const [ditujukan, setDitujukan] = useState(data.ditujukan);
   const [keterangan, setKeterangan] = useState(data.keterangan);
-  const [status, setStatus] = useState(data.status)
+  const [status, setStatus] = useState(data.status);
+  const [sifat, setSifat] = useState(data.sifat);
+  const [lampiran, setLampiran] = useState(data.lampiran);
+  const [jenis, setJenis] = useState(data.jenis);
+  const [tembusan, setTembusan] = useState(data.tembusan);
+  const [no_folder, setNo_folder] = useState(data.no_folder);
+  const [Id, setId] = useState(data.id);
+  const [signedFile, setSignedFile] = useState(null)
+  const bolehArsip = me === 'administrasi' && data.status === 'completed';
+
+
+  const handleMainFileChange = (file) => {
+    // file = File object atau null
+    setSignedFile(file)
+  }
 
   console.log("idi dai id:", data.no_agenda_keluar)
 
   useEffect(() => {
     if (data) {
-      setNoAgenda(data.no_agenda_keluar || "");
       setNoSurat(data.no_surat || "");
       setTgl_surat(data.tgl_surat || "");
       setPerihal(data.perihal || "");
       setDitujukan(data.ditujukan || "");
       setKeterangan(data.keterangan || "");
       setStatus(data.status || "");
+      setSifat(data.sifat || "");
+      setLampiran(data.lampiran || []);
+      setJenis(data.jenis || "");
+      setTembusan(data.tembusan || "");
+      setNo_folder(data.no_folder || "");
+      setId(data.id || "");
     }
   }, [data]); 
 
@@ -50,7 +66,6 @@ export default function SuratKeluarDetail({data, refreshData}) {
     console.log("Current status:", status);
 
     const formData = new FormData();
-    formData.append("no_agenda_keluar", no_agenda_keluar);
     formData.append("no_surat", no_surat);
     formData.append("tgl_surat", tgl_surat);
     formData.append("perihal", perihal);
@@ -61,15 +76,149 @@ export default function SuratKeluarDetail({data, refreshData}) {
     console.log("data yang dikirim:", formData)
 
     try {
+      Swal.fire({
+        title: 'Memproses...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const result = await editSuratKeluar(id, formData);
-      console.log("apa isi result:", result)
+      console.log("apa isi result:", result);
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Data Surat Keluar berhasil diperbarui!',
+      });
       refreshData();
     } catch (error) {
       console.error('Error Edit:', error.message);
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: error.message || 'Terjadi kesalahan saat mengedit data.',
+      });
     }
-    
-    console.log("Saving changes...");
-    closeModal();
+    modal.closeModal();
+  };
+
+
+  //const reviewable = ['draft','under_review','revisi'].includes(surat?.status);
+
+  const handleApprove = async () => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: 'Konfirmasi Persetujuan',
+      text: 'Apakah Anda yakin ingin menyetujui surat ini?',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, setujui',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      Swal.fire({
+              title: "Memproses...",
+              text: "Mohon tunggu sebentar",
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
+            });
+      await createReview(id, { status: 'approved', komentar: '' });
+      Swal.close();
+      Swal.fire('Sukses','Surat disetujui','success');
+      refreshData();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', err.response?.data?.message||err.message,'error');
+    }
+  };
+
+  const handleRevisi = async () => {
+    const { value: alasan } = await Swal.fire({
+      title: 'Masukkan alasan revisi',
+      input: 'textarea',
+      inputPlaceholder: 'Jelaskan yang perlu diperbaiki…',
+      showCancelButton: true,
+      confirmButtonText: 'Kirim Revisi',
+      cancelButtonText: 'Batal',
+      inputValidator: v => !v && 'Alasan wajib diisi'
+    });
+    if (!alasan) return;
+    try {
+      Swal.fire({
+              title: "Memproses...",
+              text: "Mohon tunggu sebentar",
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
+            });
+      await createReview(id, { status: 'revisi', komentar: alasan });
+      Swal.close();
+      Swal.fire('Dikirim','Permintaan revisi tersimpan','success');
+      refreshData();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', err.response?.data?.message||err.message,'error');
+    }
+  };
+
+  const handleCompleteRevisi = async () => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: 'Konfirmasi Persetujuan',
+      text: 'Apakah Anda sudah menyelesaikan revisi surat ini?',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, sudah',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      Swal.fire({
+              title: "Memproses...",
+              text: "Mohon tunggu sebentar",
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
+            });
+      await completeRevision(id);
+      Swal.close();
+      Swal.fire('Sukses','Surat selesai direvisi','success');
+      refreshData();
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', err.response?.data?.message||err.message,'error');
+    }
+  };
+
+  const handleGenerateNomor = async () => {
+    try {
+      Swal.fire({
+              title: "Memproses...",
+              text: "Mohon tunggu sebentar",
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              },
+            });
+      await generateNumber(id);
+      Swal.close();
+      Swal.fire('Sukses','Nomor Surat berhasil dibuat','success');
+      refreshData();
+    } catch (err) {
+      console.error('Gagal generate nomor', err);
+      Swal.fire('Error', err.response?.data?.message||err.message,'error');
+    }
   };
 
   const options = [
@@ -81,15 +230,79 @@ export default function SuratKeluarDetail({data, refreshData}) {
 
   const handleSelectChange = (value) => {
     setStatus(value);
-    console.log("Selected value:", value);
   };
 
   const formatDateString = (dateString) => {
       if (!dateString) return 'Invalid date';
       const date = new Date(dateString);
       return format(date, 'dd MMMM yyyy', {locale});
-      
     };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!signedFile) return alert('Pilih dulu file signed-nya')
+    const fd = new FormData();
+    fd.append('file', signedFile);
+    console.log("apa isi id:", id)
+    console.log('apa isi file', fd)
+    try {
+      Swal.fire({
+        title: "Memproses...",
+        text: "Mohon tunggu sebentar",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+      await uploadSigned(id, fd);
+      signModal.closeModal();  
+      Swal.close();
+      Swal.fire('Dikirim','Permintaan revisi tersimpan','success');
+      refreshData();
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', error.response?.data?.message||error.message,'error');
+    }
+}
+
+const handleArsipSurat = async (id) => {
+    const { value: no_folder } = await Swal.fire({
+      title: 'Arsipkan Surat',
+      input: 'text',
+      inputLabel: 'Masukkan No Folder',
+      inputPlaceholder: 'Contoh: 123/A',
+      showCancelButton: true,
+      confirmButtonText: 'Arsipkan',
+      cancelButtonText: 'Batal',
+      inputValidator: (value) => {
+        if (!value) return 'No folder tidak boleh kosong!';
+      }
+    });
+
+    if (!no_folder) return;
+    let payload = { no_folder: no_folder };
+
+    try {
+      await archiveSuratKeluar(id, payload);
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Sukses!',
+        text: 'Surat berhasil diarsipkan',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      refreshData();
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal mengarsipkan surat'
+      });
+    }
+  };
   
 
   return (
@@ -103,16 +316,7 @@ export default function SuratKeluarDetail({data, refreshData}) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div className="xl:w-100">
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Nomor Agenda
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {no_agenda_keluar}
-              </p>
-            </div>
-
-            <div className="xl:w-100">
-              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Nomor Surat
+                No Surat
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                 {no_surat}
@@ -157,31 +361,118 @@ export default function SuratKeluarDetail({data, refreshData}) {
 
             <div className="xl:w-100">
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Sifat
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {sifat}
+              </p>
+            </div>
+
+            <div className="xl:w-100">
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Jenis
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {jenis}
+              </p>
+            </div>
+
+            <div className="xl:w-100">
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Lampiran
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {(!lampiran || lampiran.length === 0) ? "-" : lampiran}
+              </p>
+            </div>
+
+            <div className="xl:w-100">
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Tembusan
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {tembusan}
+              </p>
+            </div>
+
+            <div className="xl:w-100">
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Status
               </p>
               <Badge
-                      size="md"
-                      color={
-                        status === "draft"
-                          ? "light"
-                          : status === "disetujui"
-                          ? "info"
-                          : status === "dikirim"
-                          ? "success"
-                          : status === "selesai"
-                          ? "primary"
-                          : "error"
-                      }
-                    >
-                      {status}
+                  variant="solid"
+                  size="md"
+                  color={
+                    status === "draft"
+                      ? "light"
+                      : status === "review"
+                      ? "review"
+                      : status === "waiting_for_signature"
+                      ? "waiting_for_signature"
+                      : status === "completed"
+                      ? "selesai"
+                      : status === "archived"
+                      ? "archived"
+                      : "error"
+                  }
+                >
+                  {status}
               </Badge>
             </div>
+            {status === 'archived' && (
+            <div className="xl:w-100">
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                No Folder Arsip
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {no_folder}
+              </p>
+            </div>
+            )}
           </div>
         </div>
 
+        {((['draft', 'KTU_Review'].includes(status) && me === "ktu") || ( (['kadep','sekdep'].includes(me) && status === 'Dept_Review')))&& (
+          <>
+            <Button
+              onClick={() => handleApprove()}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Setujui
+            </Button>
+            <Button
+              onClick={() => handleRevisi()}
+              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+            >
+              Revisi
+            </Button>
+          </>
+        )}
+
+        {['KTU_Revision','Dept_Revision'].includes(status) && me === 'administrasi' &&  (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleCompleteRevisi()}
+          >
+            Selesai Revisi
+          </Button>
+        )}
+
+        {status === 'waiting_number' && me === "ktu" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleGenerateNomor()}
+                  >
+                    Generate Nomor
+                  </Button>
+                )}
+
+        {['draft'].includes(status) && me === "administrasi" && (
         <button
-          onClick={openModal}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
+          onClick={modal.openModal}
+          className="flex w-full items-center cursor-pointer justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
         >
           <svg
             className="fill-current"
@@ -200,9 +491,39 @@ export default function SuratKeluarDetail({data, refreshData}) {
           </svg>
           Edit
         </button>
+        )}
+
+        {bolehArsip && (
+          <Button
+            onClick={() => handleArsipSurat(Id)}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-800"
+          >
+            Arsipkan
+          </Button>
+        )}
+
+      {['waiting_signature'].includes(status) && me === "administrasi" && (
+        <Button onClick={signModal.openModal} variant="outline">Upload Signed</Button>
+      )}
       </div>
 
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
+      <Modal isOpen={signModal.isOpen} onClose={signModal.closeModal} className="max-w-[700px] m-4">
+          <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+            <h3 className="text-lg font-semibold">Unggah Berkas Signed</h3>
+            <div className="p-8">
+            <DropzoneDocument
+              onMainFileChange={handleMainFileChange}
+              showLampiran={false}
+              // tidak perlu lampiran di sini
+            />
+            <Button onClick={handleSubmit} variant="outline" disabled={!signedFile}>
+              Kirim
+            </Button>
+            </div>
+          </div>
+        </Modal>
+
+      <Modal isOpen={modal.isOpen} onClose={modal.closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
@@ -220,17 +541,6 @@ export default function SuratKeluarDetail({data, refreshData}) {
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label htmlFor="no_agenda_keluar">Nomor Agenda</Label>
-                    <Input 
-                      type="text" 
-                      id="no_agenda_keluar"
-                      name="no_agenda_keluar"
-                      value={no_agenda_keluar}
-                      onChange={(e) => setNoAgenda(e.target.value)}
-                      />
-                  </div>
-
                   <div className="col-span-2 lg:col-span-1">
                     <Label htmlFor="no_surat">Nomor Surat</Label>
                     <Input 
@@ -302,7 +612,7 @@ export default function SuratKeluarDetail({data, refreshData}) {
               </div>
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
+              <Button size="sm" variant="outline" onClick={modal.closeModal}>
                 Close
               </Button>
               <Button size="sm" variant="submit" onClick={handleSaveSuratKeluar}>

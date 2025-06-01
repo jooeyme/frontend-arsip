@@ -13,44 +13,66 @@ import {
   UserCircleIcon,
 } from "../components/icons"; 
 
-//["super_admin","administrasi", "KTU", "Kadep", "sekdep"]
+//["super_admin","administrasi", "ktu", "kadep", "sekdep"]
 const navItems = [
   {
     icon: <img src={GridIcon} alt="Grid Icon"/>,
     name: "Dashboard",
     path: "/dashboard",
-    allowedRoles: ["super_admin", "administrasi", "KTU", "Kadep", "sekdep", "dosen"]
+    allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"]
   },
+  // {
+  //   icon: <img src={CalenderIcon} alt="Grid Icon"/>,
+  //   name: "Calendar",
+  //   path: "/calendar",
+  //   allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"]
+  // },
+  // {
+  //   icon: <img src={UserCircleIcon} alt="Grid Icon"/>,
+  //   name: "User Profile",
+  //   path: "/profile",
+  //   allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"]
+  // },
+  // {
+  //   name: "Forms",
+  //   icon: <img src={ListIcon} alt="Grid Icon"/>,
+  //   allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"],
+  //   subItems: [
+  //     // { name: "Form Elements", path: "/form-elements", pro: false },
+  //     { name: "Form Surat Masuk", path: "/form-surat-masuk", pro: false },
+  //     { name: "Form Surat Keluar", path: "/form-surat-keluar", pro: false },
+  //   ],
+  // },
+  // {
+  //   name: "Tables",
+  //   icon: <img src={TableIcon} alt="Grid Icon"/>,
+  //   allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"],
+  //   subItems: [
+  //     // { name: "Basic Tables", path: "/basic-tables", pro: false },
+  //     { name: "Surat Masuk Tables", path: "/letter-in-tables", pro: false },
+  //     { name: "Surat Keluar Tables", path: "/letter-out-tables", pro: false }
+  //   ],
+  // },
   {
-    icon: <img src={CalenderIcon} alt="Grid Icon"/>,
-    name: "Calendar",
-    path: "/calendar",
-    allowedRoles: ["super_admin", "administrasi", "KTU", "Kadep", "sekdep", "dosen"]
-  },
-  {
-    icon: <img src={UserCircleIcon} alt="Grid Icon"/>,
-    name: "User Profile",
-    path: "/profile",
-    allowedRoles: ["super_admin", "administrasi", "KTU", "Kadep", "sekdep", "dosen"]
-  },
-  {
-    name: "Forms",
-    icon: <img src={ListIcon} alt="Grid Icon"/>,
-    allowedRoles: ["super_admin", "administrasi", "KTU", "Kadep", "sekdep", "dosen"],
+    name: "Surat Masuk",
+    icon: <img src={TableIcon} alt="Grid Icon"/>,
+    allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"],
     subItems: [
-      { name: "Form Elements", path: "/form-elements", pro: false },
-      { name: "Form Surat Masuk", path: "/form-surat-masuk", pro: false },
-      { name: "Form Surat Keluar", path: "/form-surat-keluar", pro: false },
+      // { name: "Basic Tables", path: "/basic-tables", pro: false },
+      { name: "Daftar Surat Masuk", path: "/letter-in-tables", pro: false },
+      { name: "Input Surat Masuk", path: "/form-surat-masuk", pro: false, allowedRoles: ["super_admin", "administrasi"], },
+      { name: "Arsip Surat Masuk", path: "/arsip-surat-masuk", pro: false }
     ],
   },
   {
-    name: "Tables",
+    name: "Surat Keluar",
     icon: <img src={TableIcon} alt="Grid Icon"/>,
-    allowedRoles: ["super_admin", "administrasi", "KTU", "Kadep", "sekdep", "dosen"],
+    allowedRoles: ["super_admin", "administrasi", "ktu", "kadep", "sekdep", "dosen"],
     subItems: [
-      { name: "Basic Tables", path: "/basic-tables", pro: false },
-      { name: "Surat Masuk Tables", path: "/letter-in-tables", pro: false },
-      { name: "Surat Keluar Tables", path: "/letter-out-tables", pro: false }
+      // { name: "Basic Tables", path: "/basic-tables", pro: false },
+      { name: "Daftar Surat Keluar", path: "/letter-out-tables", pro: false },
+      { name: "Input Surat Keluar", path: "/form-surat-keluar", pro: false, allowedRoles: ["super_admin", "administrasi"], },
+      { name: "Arsip Surat Keluar", path: "/arsip-surat-keluar", pro: false }
     ],
   },
 ];
@@ -225,7 +247,12 @@ const AppSidebar = () => {
               }}
             >
               <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
+                {nav.subItems
+                .filter(
+                  (subItem) =>
+                    !subItem.allowedRoles || subItem.allowedRoles.includes(userRole)
+                )
+                .map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
@@ -319,10 +346,10 @@ const AppSidebar = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+      <div className="flex flex-col h-full overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
+          
+            <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
@@ -338,8 +365,9 @@ const AppSidebar = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
+            </nav>
 
-            <div className="">
+            <div className="mt-auto mb-6">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
@@ -355,8 +383,8 @@ const AppSidebar = () => {
               </h2>
               {renderMenuItems(othersItems, "others")}
             </div>
-          </div>
-        </nav>
+          
+        
       </div>
     </aside>
   );

@@ -1,7 +1,9 @@
 import './App.css'
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import BasicTables from "./pages/Tables/BasicTables";
+import { AuthProvider } from './context/AuthContext';
+import TableArsipSuratKeluar from './pages/Tables/TableArsipSuratKeluar';
+import TableArsipSuratMasuk from './pages/Tables/TableArsipSuratMasuk';
 import TableSuratMasuk from './pages/Tables/TableSuratMasuk';
 import TableSuratKeluar from './pages/Tables/TableSuratKeluar';
 import DetailSuratKeluar from './pages/Details/DetailSuratKeluar';
@@ -15,6 +17,8 @@ import AuthLayout from './layout/AuthLayout';
 import SignIn from './pages/AuthPages/SignIn';
 import Calendar from "./pages/Calendar";
 import UserProfiles from "./pages/UserProfiles";
+import Dashboard from './pages/Dashboard';
+import LogPerubahanList from './pages/Details/DetailsLogs';
 
 function App() {
   
@@ -24,16 +28,21 @@ function App() {
       <Router>
         <Routes>
           {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
+          
+          <Route element={<AuthProvider><AppLayout /></AuthProvider>}>
 
-
+            <Route path='/dashboard' element={<Dashboard/>} />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
 
             <Route path="/detail-surat-keluar/:id" element={<DetailSuratKeluar/>}/>    
             <Route path='/detail-surat-masuk/:id' element={<DetailSuratMasuk/>}/>
+            <Route path='/all-logs' element={<LogPerubahanList/>}/>
+
+
             {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+            <Route path="/arsip-surat-keluar" element={<TableArsipSuratKeluar />} />
+            <Route path="/arsip-surat-masuk" element={<TableArsipSuratMasuk />} />
             <Route path="/letter-in-tables" element={<TableSuratMasuk />} />
             <Route path="/letter-out-tables" element={<TableSuratKeluar />} />
 
@@ -45,6 +54,7 @@ function App() {
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
           </Route>
+         
 
           {/* Auth Layout */}
           <Route element={<AuthLayout />}>

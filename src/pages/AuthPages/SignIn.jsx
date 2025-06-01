@@ -7,6 +7,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../components/icons";
 import Checkbox from "../../components/form/input/Checkbox";
 import Button from "../../components/ui/button/Button";
 import { Login } from "../../modules/fetch/user";
+import axios from "axios";
 // import PageMeta from "../../components/common/PageMeta";
 
 export default function SignIn() {
@@ -24,7 +25,8 @@ export default function SignIn() {
       const response = await Login({ email, password });
       const { token } = response;
       localStorage.setItem('token', token);
-      navigate('/home')
+      axios.defaults.headers.common['Authorization'] = token;
+      navigate('/dashboard')
     } catch (error) {
       // Handle login error
       setError('Invalid email or password');
@@ -145,13 +147,10 @@ export default function SignIn() {
         <div className="relative items-center justify-center flex-1 hidden p-8 z-1 bg-brand-950 dark:bg-white/5 lg:flex">
           {/* <!-- ===== Common Grid Shape Start ===== --> */}
           <GridShape />
-          <div className="flex flex-col items-center max-w-xs">
+          <div className="flex flex-col items-center max-w-md">
             <Link to="/" className="block mb-4">
-              <img src="./images/logo/auth-logo.svg" alt="Logo" />
+              <img src="./images/logo/E1 - Logo IPB University Vertical Departemen Warna-Lo.png" alt="Logo" />
             </Link>
-            <p className="text-center text-gray-400 dark:text-white/60">
-              Free and Open-Source Tailwind CSS Admin Dashboard Template
-            </p>
           </div>
         </div>
       </div>

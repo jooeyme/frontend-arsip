@@ -18,6 +18,15 @@ async function getAllUser() {
     }
 }
 
+async function getUserName() {
+    try {
+        const response = await instance.get('/user/allname');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.message.data.message || "Something went wrong");
+    }
+}
+
 async function getUserById(id) {
     try {
         const response = await instance.get(`/user/${id}`);
@@ -54,11 +63,22 @@ async function Login(formData) {
     }
 }
 
+async function getProfile() {
+    try {
+        const response = await instance.get('/user/me');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.message.data.message || "Something went wrong")
+    }
+}
+
 export {
     Login,
     createUser,
     getAllUser,
+    getUserName,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    getProfile
 }

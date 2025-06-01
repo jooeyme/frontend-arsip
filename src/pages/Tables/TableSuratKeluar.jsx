@@ -3,20 +3,29 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import SuratKeluarTable from "../../components/tables/suratKeluarTables";
 import SearchBar from "../../components/form/SearchBar";
-import Button from "../../components/ui/button/Button";
 import { searchSuratKeluar } from "../../modules/fetch/surat-keluar";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
 
 export default function TableSuratKeluar() {
+  const { user, loading } = useAuth();
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [keyword, setKeyword] = useState(""); 
+  const [loadingSearch, setLoading] = useState(false);
   const navigate = useNavigate();
   
-  const handleSearch = useCallback(async (keyword) => {
-    console.log("Mencari:", keyword);
+  const handleSearch = useCallback(async (kw) => {
+    console.log("Mencari:", kw);
+    setKeyword(kw);
+    if (kw.trim().length < 3) {
+      // clear hasil search kalau kurang dari 3 karakter
+      return setResults([]);
+    }
     setLoading(true);
     try {
-      const results = await searchSuratKeluar(keyword);
+      const results = await searchSuratKeluar(kw);
+      console.log(results)
       setResults(results);
     } catch (err) {
       console.error("Error:", err.message);
@@ -25,30 +34,31 @@ export default function TableSuratKeluar() {
     }
   },[]);
 
-  const handleSelectItem = (id) => {
-    navigate(`/detail-surat-keluar/${id}`);
-  };
-
-  const handleInput = () => {
-    navigate(`/form-surat-masuk`);
-  }
-
+  if (loading) return <p>Loading…</p>;
+  if (!user) return <Navigate to="/signin" />
+    
+      const role = user.role; 
+      const me = user.nama_lengkap;
+  
   return (
     <>
       <PageBreadcrumb pageTitle="Surat Keluar" />
       <div className="space-y-6">
         <ComponentCard title="Tabel Surat Keluar">
-        <Button 
-            size="sm"
-            variant="outline"
-            onClick={handleInput}
-        >
-            Input Surat Keluar
-        </Button>
         <div className="flex justify-end">
-          <SearchBar onSearch={handleSearch} results={results} loading={loading} onSelect={handleSelectItem}/>
+          <SearchBar 
+              keyword={keyword}
+              onKeywordChange={setKeyword}
+              onSearch={handleSearch}
+              loading={loadingSearch}
+          />
         </div>
-          <SuratKeluarTable />
+          <SuratKeluarTable 
+            me={role}
+            searchResults={results}
+            loadingSearch={loadingSearch}
+            keyword={keyword}
+          />
         </ComponentCard>
       </div>
     </>

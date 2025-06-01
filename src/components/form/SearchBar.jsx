@@ -1,35 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
 
-const SearchBar = ({onSearch, results, loading, onSelect}) => {
-    const [keyword, setKeyword] = useState("");
+const SearchBar = ({ keyword,
+  onKeywordChange, onSearch, loading, onSelect}) => {
+    
 
     const handleSearch = async (e) => {
         e.preventDefault();
         if (keyword.trim().length >= 3) {
             onSearch(keyword);
         }
-        // console.log("apa isi keyword:", keyword)
-        // try {
-        //   const results = await searchSuratMasuk(keyword);
-        //   console.log("apa isi result search:", results)
-        //   setResults(results);
-        // } catch (err) {
-        //   console.error("Error:", err.message);
-        // } finally {
-        //   setLoading(false);
-        // }
       };
   
       // Auto search ketika keyword minimal 3 huruf
     useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-        if (keyword.trim().length >= 3) {
-            onSearch(keyword);
-        }
-        }, 500); // debounce 500ms
+    const kw = keyword.trim();
+    const handler = setTimeout(() => {
+      onSearch(kw);
+    }, 500);
 
-        return () => clearTimeout(delayDebounce);
-    }, [keyword, onSearch]);
+    return () => clearTimeout(handler);
+  }, [keyword, onSearch]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSearch(keyword.trim());
+  };
       
     return (
         <>
@@ -57,8 +52,8 @@ const SearchBar = ({onSearch, results, loading, onSelect}) => {
                   type="text"
                   placeholder="Search or type command..."
                   value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[450px]"
+                  onChange={(e) => onKeywordChange(e.target.value)}
+                  className="dark:bg-dark-900  w-full rounded-lg border border-gray-200 bg-transparent py-2 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[450px]"
                 />
 
                 <button 
@@ -69,32 +64,17 @@ const SearchBar = ({onSearch, results, loading, onSelect}) => {
                 </button>
               </div>
             </form>
-          </div>
-          {loading ? (
-      <p className="text-gray-500 text-sm">Sedang mencari...</p>
-    ) : results.length > 0 ? (
-      <div className="space-y-4">
-        {results.map((item) => (
-          <div
-            key={item._id}
-            onClick={() => onSelect(item._id)}
-            className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm cursor-pointer hover:bg-gray-100 transition duration-200 ease-in-out"
-          >
-            <p className="font-semibold text-gray-800">
-              {item._source.name_doc}
-            </p>
-            <p className="text-sm text-gray-500">
-              No Agenda: {item._source.no_agenda}
-            </p>
-            <p className="text-sm text-gray-600 truncate">
-            {item._source.content.split(" ").slice(0, 15).join(" ") + "..."}
-            </p>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p className="text-sm text-gray-400"></p>
+            {loading  && (<p className="text-sm text-gray-400">Sedang mencari...</p>
     )}
+          </div>
+          
+            
+            
+          
+    
+      
+    
+      
         </>
     )
 }
