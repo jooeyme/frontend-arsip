@@ -61,7 +61,7 @@ export default function SuratMasukTable({
   const [loadingAuth, setLoading] = useState(false);
 
   const handleSearch = useCallback(async (keyword) => {
-    console.log("Mencari:", keyword);
+    
     setLoading(true);
     try {
       const results = await searchSuratMasuk(keyword);
@@ -92,7 +92,7 @@ export default function SuratMasukTable({
       cancelButtonText: "Tidak",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        console.log("apa isi id:", id);
+        
         try {
           Swal.fire({
             title: "Memproses...",
@@ -127,12 +127,11 @@ export default function SuratMasukTable({
       try {
         
         const response = await getAllSuratMasuk( page, limit, statusFilter, jenisFilter );
-        console.log("apa isi repsonse:", response.total);
 
         setTableData(response.data);
         setTotal(response.total);
       } catch (error) {
-        console.log("Error fetching Surat Masuk", error);
+        console.error("Error fetching Surat Masuk", error);
       }
     }, [page, limit, statusFilter, jenisFilter]);
 
@@ -214,15 +213,17 @@ export default function SuratMasukTable({
           <option value="selesai">Selesai</option>
           <option value="diarsipkan">Diarsipkan</option>
         </select>
-        <select
+        {/* <select
           value={jenisFilter}
           onChange={(e) => { setJenisFilter(e.target.value); setPage(1); }}
           className="border p-1 rounded font-medium text-sm text-gray-700 text-start  dark:text-gray-400"
         >
           <option value="">Semua Jenis</option>
-          <option value="internal">Internal</option>
-          <option value="eksternal">Eksternal</option>
-        </select>
+          <option value="rahasia">Surat Rahasia</option>
+          <option value="penting">Surat Penting</option>
+          <option value="sangat_penting">Surat Sangat Penting</option>
+          <option value="biasa">Surat Biasa</option>
+        </select> */}
         </div>
     
 
@@ -243,31 +244,31 @@ export default function SuratMasukTable({
         <div className="min-w-[1102px]">
           <Table>
             {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-100">
               <TableRow>
                 {isSearching ? (
                 <>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Nomor Agenda
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Nama Dokumen
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Snippet
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Aksi
                   </TableCell>
@@ -276,49 +277,49 @@ export default function SuratMasukTable({
                 <>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Nomor Agenda
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Perihal
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Tanggal Diterima
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Nomor Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Tanggal Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Asal Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Status
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Aksi
                 </TableCell>
@@ -397,6 +398,8 @@ export default function SuratMasukTable({
                           ? "diproses"
                           : order.status === "selesai"
                           ? "selesai"
+                          : order.status === "waiting_to_archive"
+                          ? "waiting_to_archive"
                           : order.status === "diarsipkan"
                           ? "archived"
                           : "error"

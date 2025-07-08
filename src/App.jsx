@@ -11,6 +11,7 @@ import DetailSuratMasuk from './pages/Details/DetailSuratMasuk';
 import FormElements from './pages/Forms/FormElements';
 import FormSuratMasuk from './pages/Forms/FormSuratMasuk';
 import FormSuratKeluar from './pages/Forms/FormSuratKeluar';
+import FormArchiveSuratKeluar from './pages/Forms/FormArchiveSuratKeluar';
 import NotFound from './pages/OhterPage/NotFound';
 import AppLayout from './layout/AppLayout';
 import AuthLayout from './layout/AuthLayout';
@@ -19,6 +20,12 @@ import Calendar from "./pages/Calendar";
 import UserProfiles from "./pages/UserProfiles";
 import Dashboard from './pages/Dashboard';
 import LogPerubahanList from './pages/Details/DetailsLogs';
+import PengaturanUsers from './pages/ManageUsers';
+import Pegawai from './pages/Pegawai';
+import KlasifikasiSurat from './pages/KlasifikasiSurat';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import Tujuan from './pages/Tujuan';
+import Tembusan from './pages/Tembusan';
 
 function App() {
   
@@ -34,6 +41,12 @@ function App() {
             <Route path='/dashboard' element={<Dashboard/>} />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
+            <Route path='/atur-pengguna' element={<PengaturanUsers />} />
+            <Route path='/atur-pegawai' element={<Pegawai />} />
+            <Route path='/atur-klasifikasi' element={<KlasifikasiSurat />} />
+            <Route path='/atur-tujuan' element={<Tujuan />} />
+            <Route path='/atur-tembusan' element={<Tembusan />} />
+            
 
             <Route path="/detail-surat-keluar/:id" element={<DetailSuratKeluar/>}/>    
             <Route path='/detail-surat-masuk/:id' element={<DetailSuratMasuk/>}/>
@@ -50,7 +63,7 @@ function App() {
             <Route path="/form-elements" element={<FormElements />} />
             <Route path="/form-surat-masuk" element={<FormSuratMasuk />} />
             <Route path='/form-surat-keluar' element={<FormSuratKeluar />} />
-
+            <Route path='/archive-surat-keluar' element={<FormArchiveSuratKeluar />} />
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
           </Route>
@@ -59,6 +72,7 @@ function App() {
           {/* Auth Layout */}
           <Route element={<AuthLayout />}>
             <Route path="/signin" element={<SignIn />} />
+            <Route path="/auth/reset-password/:token" element={<ResetPasswordPage />} />
           </Route>
         </Routes>
       </Router>

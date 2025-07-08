@@ -40,8 +40,9 @@ export default function SignIn() {
         title="React.js SignIn Dashboard | TailAdmin - Next.js Admin Dashboard Template"
         description="This is React.js SignIn Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       /> */}
-      <div className="relative flex w-full h-screen px-4 py-6 overflow-hidden bg-white z-1 dark:bg-gray-900 sm:p-0">
-        <div className="flex flex-col flex-1 p-6 rounded-2xl sm:rounded-none sm:border-0 sm:p-8">
+      <div 
+      className="relative flex w-full h-screen px-4 py-6 overflow-hidden z-1 dark:bg-gray-900 sm:p-0">
+        <div className="bg-white shadow-lg flex flex-col flex-1 p-6 rounded-xl w-full max-w-3xl overflow-hidden sm:rounded-none sm:border-0 sm:p-8">
           <div className="w-full max-w-md pt-10 mx-auto">
             <Link
               to="/"
@@ -52,7 +53,15 @@ export default function SignIn() {
               Back to dashboard
             </Link>
           </div>
-          <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+          
+          <div className="flex flex-col justify-center gap-16 flex-1 w-full max-w-md mx-auto">
+            
+            
+            <Link to="/" className="block mb-4">
+              <img src="./images/logo/E1 - Logo IPB University Vertical Departemen Warna-Lo.png" alt="Logo" />
+            </Link>
+        
+          
             <div>
               <div className="mb-5 sm:mb-8">
                 <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
@@ -106,7 +115,7 @@ export default function SignIn() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Checkbox checked={isChecked} onChange={setIsChecked} />
                         <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
@@ -119,7 +128,7 @@ export default function SignIn() {
                       >
                         Forgot password?
                       </Link>
-                    </div>
+                    </div> */}
                     {error && <p style={{ color: 'red' }}>{error}</p>}
                     <div>
                       <Button type="submit" className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700" size="sm">
@@ -129,7 +138,7 @@ export default function SignIn() {
                   </div>
                 </form>
 
-                <div className="mt-5">
+                {/* <div className="mt-5">
                   <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                     Don't have an account? {""}
                     <Link
@@ -139,19 +148,29 @@ export default function SignIn() {
                       Sign Up
                     </Link>
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
         </div>
-        <div className="relative items-center justify-center flex-1 hidden p-8 z-1 bg-brand-950 dark:bg-white/5 lg:flex">
+        <div 
+        style={{
+            backgroundImage: "url('/images/ipb.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        className="relative items-center justify-center flex-1 hidden p-8 z-1 bg-brand-950 dark:bg-white/5 lg:flex">
           {/* <!-- ===== Common Grid Shape Start ===== --> */}
+          
           <GridShape />
-          <div className="flex flex-col items-center max-w-md">
+          {/* <div className="flex flex-col items-center max-w-md"
+          
+            >
             <Link to="/" className="block mb-4">
               <img src="./images/logo/E1 - Logo IPB University Vertical Departemen Warna-Lo.png" alt="Logo" />
             </Link>
-          </div>
+          </div> */}
+          
         </div>
       </div>
     </>

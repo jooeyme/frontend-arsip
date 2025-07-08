@@ -15,13 +15,12 @@ export default function UserProfiles() {
         try {
           const decodedToken = jwtDecode(token);
           setUserData(decodedToken);
-          console.log("apa isi token:", decodedToken);
           
         } catch (error) {
           console.error("Invalid token", error);
         }
       } else {
-        console.log("no token")
+        console.error("no token")
       }
   
     },[]);

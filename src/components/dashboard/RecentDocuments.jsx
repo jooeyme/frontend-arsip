@@ -34,7 +34,7 @@ export default function RecentDocuments({user}) {
           getDashboardSuratKeluar()
         ])
 
-        console.log("apa isi masuk:", resMasuk)
+        
 
         // 2) normalize & tag jenis
         const masuk  = resMasuk.data.map(item => ({
@@ -48,14 +48,12 @@ export default function RecentDocuments({user}) {
           timestamp: item.tgl_input || item.createdAt
         }))
 
-        console.log("apa isi masuk masuk:", masuk)
-        console.log("apa isi keluar keluar:", keluar)
+        
 
         // 3) gabung + sort descending
         const all = [...masuk, ...keluar]
           .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
 
-          console.log("apa isi all", all)
 
         setTableData(all)
       } catch (err) {
@@ -69,35 +67,9 @@ export default function RecentDocuments({user}) {
   }, [user.role])
 
 
-  //   const fetchMap = {
-  //   administrasi: getAdminArchive,
-  //   kadep:        getKadepList,
-  //   sekretaris:   getKadepList,     // kalau sekretaris punya logic sama dengan kadep
-  //   ktu:           getDisposisiList, // misal role "tu" (Kepala TU)
-  //   // tambahin role lain kalau perlu
-  // }
+ 
 
-  // useEffect(() => {
-  //   if(!user) return
-  //   const load = async () => {
-  //     setLoading(true)
-  //     try {
-  //       const fn = fetchMap[user.role]
-  //       console.log("apa isi fn:", fn)
-  //       if (!fn) throw new Error(`No fetch fn for role ${user.role}`)
-  //       const res = await fn();
-  //       console.log("apa isi response:", res)
-        
-  //       setTableData(res.data)
-  //     } catch (err) {
-  //       console.error(err)
-  //       setTableData([]) 
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-  //   load()
-  // }, [user.role])
+  
     
 
   const formatDateString = (dateString) => {
@@ -125,47 +97,47 @@ export default function RecentDocuments({user}) {
       <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1102px]">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-100">
             <TableRow>
               <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Jenis Surat
             </TableCell>
             <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Nomor Surat
             </TableCell>
             <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
+                >
+                Perihal
+            </TableCell>
+            <TableCell
+                isHeader
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Tanggal Surat
             </TableCell>
             <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                Tanggal Surat
-            </TableCell>
-            <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Status
                 </TableCell>
                 <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Keterangan
                 </TableCell>
                 <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                 Aksi
                 </TableCell>
@@ -188,7 +160,7 @@ export default function RecentDocuments({user}) {
                     {order.no_surat}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {order.jenis}
+                  {order.perihal}
                     
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -207,13 +179,19 @@ export default function RecentDocuments({user}) {
                           ? "diproses"
                           : order.status === "selesai"
                           ? "selesai"
+                          : order.status === "waiting_to_archive"
+                          ? "waiting_to_archive"
                           : order.status === "draft"
                           ? "draft"
                           : order.status === "review"
                           ? "review"
+                          : order.status === "Dept_Review"
+                          ? "review"
+                          : order.status === "waiting_number"
+                          ? "waiting_for_signature"
                           : order.status === "revisi"
                           ? "diproses"
-                          : order.status === "waiting_for_signature"
+                          : order.status === "waiting_signature"
                           ? "waiting_for_signature"
                           : order.status === "signed"
                           ? "signed"

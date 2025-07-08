@@ -21,20 +21,6 @@ export default function ReviewList({ data, currentStatus, refreshData }) {
   const [selectedReview, setSelectedReview] = useState(null);
   const [status, setStatus]     = useState('approved');
   const [komentar, setKomentar] = useState('');
-  
-
-  // load reviews
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const data  = await getReviewsBySuratId(suratId);
-  //       console.log("apa isi data:", data)
-  //       setReviews(data.data);
-  //     } catch (err) {
-  //       console.error('Gagal load reviews', err);
-  //     }
-  //   })();
-  // }, [suratId]);
 
   const canReview = ['draft','under_review','revisi'].includes(currentStatus);
 

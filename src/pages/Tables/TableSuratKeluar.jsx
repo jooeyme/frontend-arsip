@@ -6,7 +6,8 @@ import SearchBar from "../../components/form/SearchBar";
 import { searchSuratKeluar } from "../../modules/fetch/surat-keluar";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
+import SuratKeluarDataTable from "../../components/tables/TableData";
+import UserTable from "../../components/tables/ReactTableData";
 
 export default function TableSuratKeluar() {
   const { user, loading } = useAuth();
@@ -16,7 +17,6 @@ export default function TableSuratKeluar() {
   const navigate = useNavigate();
   
   const handleSearch = useCallback(async (kw) => {
-    console.log("Mencari:", kw);
     setKeyword(kw);
     if (kw.trim().length < 3) {
       // clear hasil search kalau kurang dari 3 karakter
@@ -25,7 +25,7 @@ export default function TableSuratKeluar() {
     setLoading(true);
     try {
       const results = await searchSuratKeluar(kw);
-      console.log(results)
+
       setResults(results);
     } catch (err) {
       console.error("Error:", err.message);
@@ -45,20 +45,26 @@ export default function TableSuratKeluar() {
       <PageBreadcrumb pageTitle="Surat Keluar" />
       <div className="space-y-6">
         <ComponentCard title="Tabel Surat Keluar">
-        <div className="flex justify-end">
+        {/* <div className="flex justify-end">
           <SearchBar 
               keyword={keyword}
               onKeywordChange={setKeyword}
               onSearch={handleSearch}
               loading={loadingSearch}
           />
-        </div>
+        </div> */}
           <SuratKeluarTable 
             me={role}
             searchResults={results}
             loadingSearch={loadingSearch}
             keyword={keyword}
           />
+
+          {/* <SuratKeluarDataTable 
+          me={role}
+          />
+
+          <UserTable /> */}
         </ComponentCard>
       </div>
     </>

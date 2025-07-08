@@ -14,7 +14,6 @@ export default function TableSuratMasuk() {
   const [loadingSearch, setLoading] = useState(false);
 
   const handleSearch = useCallback(async (kw) => {
-    console.log("Mencari:", kw);
     setKeyword(kw);
     if (kw.trim().length < 3) {
       // clear hasil search kalau kurang dari 3 karakter
@@ -31,8 +30,7 @@ export default function TableSuratMasuk() {
     }
   }, []);
 
-  console.log('user:', user)
-  console.log('user:', loading)
+
 
   if (loading)   return <p>Loading…</p>;
   if (!user)     return <Navigate to="/signin" />
@@ -49,7 +47,7 @@ export default function TableSuratMasuk() {
           {/* <Button onClick={handleInput} variant="outline">
             <PlusCircle /> Tambah Surat Masuk
           </Button> */}
-          <div className="flex justify-end">
+          {/* <div className="flex justify-end">
             <SearchBar
               keyword={keyword}
               onKeywordChange={setKeyword}
@@ -57,7 +55,7 @@ export default function TableSuratMasuk() {
               loading={loadingSearch}
               
             />
-          </div>
+          </div> */}
           <SuratMasukTable 
             me={role}
             searchResults={results}

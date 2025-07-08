@@ -4,7 +4,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import ArsipSuratMasukTable from "../../components/tables/arsipSuratMasukTable";
 import { Navigate, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { downloadArchivedSuratMasuk } from "../../modules/fetch/surat-masuk";
+import { downloadArchivedSuratMasuk, searchSuratMasuk } from "../../modules/fetch/surat-masuk";
 import SearchBar from "../../components/form/SearchBar";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/ui/button/Button";
@@ -25,8 +25,7 @@ export default function TableArsipSuratMasuk() {
     }
     setLoading(true);
     try {
-      const results = await searchSuratKeluar(kw);
-      console.log(results)
+      const results = await searchSuratMasuk(kw);
       setResults(results);
     } catch (err) {
       console.error("Error:", err.message);
@@ -72,9 +71,9 @@ export default function TableArsipSuratMasuk() {
         title="React.js Basic Tables Dashboard | TailAdmin - Next.js Admin Dashboard Template"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       /> */}
-      <PageBreadcrumb pageTitle="Arsip Surat Keluar Tables" />
+      <PageBreadcrumb pageTitle="Arsip Surat Masuk" />
       <div className="space-y-6">
-        <ComponentCard title="Arsip Table Surat Keluar">
+        <ComponentCard title="Tabel Arsip Surat Masuk">
           <Button
             size="sm"
             variant="outline"

@@ -12,9 +12,13 @@ import { FaRegFilePdf } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { getAllKlasifikasi, createKlasifikasi } from "../../../modules/fetch/klasifikasi";
 import { getAllTujuan, createTujuan } from "../../../modules/fetch/tujuan";
+import { getAllTembusan, createTembusan } from "../../../modules/fetch/tembusan";
 import DropzoneDocument from "./InputDocument";
+import { set } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 export default function InputSuratKeluar() {
+  const navigate = useNavigate();
     const [formValues, setFormValues] = useState({
         tgl_surat: '',
         perihal: '',
@@ -28,6 +32,12 @@ export default function InputSuratKeluar() {
     const [drafts, setDrafts] = useState(null);
     const [lampirans, setLampirans] = useState([]);
     const [input, setInput] = useState('');   
+
+    //Tembusan Surat
+    const [tembusanOptions, setTembusamOptions] = useState([]);
+    const [createTembusanMode, setCreateTembusanMode] = useState(false);
+    const [newNameTembusan, setNewNameTembusan] = useState('');
+    const tembusanRef = useRef(null);
 
     // creatable classification
     const [classOptions, setClassOptions] = useState([]);
@@ -66,15 +76,15 @@ export default function InputSuratKeluar() {
   };
  
   const handleSelectChangeSifat = (value) => {
-    console.log("apa isi sifat:", value.value);
       setFormValues(prev => ({
       ...prev,
       sifat: value.value
     }));
   };
 
-  const handleSelectChangeKlas = (value) => {
-    console.log("apa isi klasId:", value.value)
+
+    //klasifikasi surat
+    const handleSelectChangeKlas = (value) => {
         setFormValues(prev => ({
         ...prev,
         klasId: value.value
@@ -95,6 +105,7 @@ export default function InputSuratKeluar() {
         }
     }
 
+    //Tujuan surat
     async function fetchDest() {
             try {
                 const dest = await getAllTujuan();
@@ -107,19 +118,40 @@ export default function InputSuratKeluar() {
             } catch (error) {
                 console.error("gagal fetch tujuan", error);
             }
-        }
+    }
+
+    //Tembusan Surat
+    async function fetchTembusan() {
+            try {
+                const tembusan = await getAllTembusan();
+                const tembusanOpts = tembusan.map(item => ({
+                  value: item.nama,
+                  label: item.nama
+                }));
+                setTembusamOptions(tembusanOpts);
+
+            } catch (error) {
+                console.error("gagal fetch tujuan", error);
+            }
+    }
 
     useEffect(() => {
       fetchKlas();
       fetchDest();
+      fetchTembusan();
       function onClickOutside(e) {
         if (containerRef.current && !containerRef.current.contains(e.target)) {
           setCreateMode(false);
         }
 
+        if (tembusanRef.current && !tembusanRef.current.contains(e.target)) {
+          setCreateTembusanMode(false);
+        }
+
         if (destRef.current && !destRef.current.contains(e.target)) {
         setCreateDestMode(false);
         }
+
       }
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
@@ -147,8 +179,8 @@ export default function InputSuratKeluar() {
         }
     }
 
+    //tujuan Surat
     const onSelectDest = v => { 
-      console.log("apa isi tujuan:", v.map(o => o.value))
       setFormValues(prev => (
         { 
           ...prev, 
@@ -165,7 +197,6 @@ export default function InputSuratKeluar() {
     const handleAddDest = async() => {
       if (!newDestName) return;
       try {
-        console.log("nama tujuan baru:", newDestName)
         const created = await createTujuan({nama: newDestName});
         const option = { value: created.nama, label: created.nama };
         setDestOptions(prev => [...prev, option]);
@@ -175,6 +206,37 @@ export default function InputSuratKeluar() {
       } catch (error) {
         console.error('Error creating klasifikasi', error);
         Swal.fire('Error', error.message || 'Gagal membuat klasifikasi', 'error');
+      }
+    }
+
+    //Tembusan
+    const onSelectTembusan = v => {
+      setFormValues(prev => (
+        {
+          ...prev,
+          tembusan: v ? v.map(o => o.value) : []
+        }
+      ));
+      setCreateTembusanMode(false);
+    }
+
+    const onAddTembusan = () => {
+      setCreateTembusanMode(true);
+      setNewNameTembusan('');
+    } 
+
+    const handleAddTembusan = async() => {
+      if (!newNameTembusan) return;
+      try {
+        const created = await createTembusan({nama: newNameTembusan});
+        const option = { value: created.nama, label: created.nama};
+        setTembusamOptions(prev => [...prev, option]);
+        setFormValues(prev => ({...prev, tembusan: created.nama}));
+        setCreateTembusanMode(false);
+        fetchTembusan();
+      } catch (error) {
+        console.error('Error creating Nama tembusan', error);
+        Swal.fire('Error', error.message || 'Gagal membuat nama tembusan baru', 'error');
       }
     }
 
@@ -188,7 +250,6 @@ export default function InputSuratKeluar() {
     const handleSubmit = async (e) => {
       e.preventDefault();
 
-      console.log("form value:", formValues)
       try {
           const data = new FormData();
           Object.entries(formValues).forEach(([Key, val]) => {
@@ -208,7 +269,6 @@ export default function InputSuratKeluar() {
             });
 
           await createSuratKeluar(data)
-          console.log("Surat Masuk created successfully!");
 
           Swal.close();
 
@@ -230,6 +290,7 @@ export default function InputSuratKeluar() {
           });
           setDrafts(null);
           setLampirans([]);
+          navigate("/letter-out-tables");
       } catch (error) {
           console.error(error);
           Swal.close();
@@ -247,8 +308,8 @@ export default function InputSuratKeluar() {
         
         <div className="space-y-6">
             <ComponentCard title="Input Data Surat Keluar">
-            <div ref={containerRef} className="space-y-6">
-                <div> 
+            <div className="space-y-6">
+                <div ref={containerRef}> 
                 <Label htmlFor="klasId">Klasifikasi Surat</Label>
                 <div className="flex gap-4">
                 <Select
@@ -369,7 +430,7 @@ export default function InputSuratKeluar() {
                     onChange={handleChange}
                     placeholder="" />
                 </div> */}
-                <div>
+                {/* <div>
                 <Label htmlFor="tembusan">Tembusan</Label>
                 <Input 
                     type="text" 
@@ -378,6 +439,54 @@ export default function InputSuratKeluar() {
                     value={formValues.tembusan}
                     onChange={handleChange}
                     placeholder="" />
+                </div> */}
+
+                <div ref={tembusanRef}>
+                <Label htmlFor="tembusan">Tembusan</Label>
+                <div className="flex gap-4">
+                <Select
+                  isMulti
+                  options={tembusanOptions}
+                  defaultSelected={[]}
+                  onChange={onSelectTembusan}
+                  className="basic-multi-select w-full"
+                />
+                  {!createTembusanMode && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onAddTembusan}
+                    >
+                      +Tambah
+                    </Button>
+                  )}
+                  </div>
+
+                  {createTembusanMode && (
+                  <div className=" mt-2 flex gap-2 items-end">
+                    <div className="">
+                    <Label htmlFor="NewNameTembusan">Nama Tembusan</Label>
+                    <Input 
+                      type="text"
+                      placeholder="Nama Tembusan" 
+                      value={newNameTembusan} 
+                      onChange={e => setNewNameTembusan(e.target.value)} 
+                    />
+                    </div>
+                    <Button 
+                      type="button"
+                      onClick={handleAddTembusan} 
+                      variant="submit">
+                        Save
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setCreateTembusanMode(false)}>
+                        Cancel
+                    </Button>
+                  </div>
+                  )}
                 </div>
 
                 <div ref={destRef}>
@@ -402,7 +511,7 @@ export default function InputSuratKeluar() {
                   </div>
 
                   {createDestMode && (
-                  <div className="flex gap-2 items-end">
+                  <div className="mt-2 flex gap-2 items-end">
                     <div className="">
                     <Label htmlFor="newDestName">Nama Tujuan</Label>
                     <Input 

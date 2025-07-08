@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { getUserName } from "../../../modules/fetch/user";
 import { createDisposisi } from "../../../modules/fetch/disposisi";
 
-export default function DisposisiInputModal({ isOpen, onClose, suratId, onCreated }) {
+export default function DisposisiInputModal({ isOpen, onClose, suratId, onCreated, refresh }) {
   // form state
   const [form, setForm] = useState({
     tindakan: "",
@@ -57,12 +57,11 @@ export default function DisposisiInputModal({ isOpen, onClose, suratId, onCreate
       const payload = { 
         no_agenda: suratId,
         ...form };
-        console.log("apa isi payload", payload)
       const res = await createDisposisi(payload);
       Swal.close();
       Swal.fire('Berhasil', 'Disposisi berhasil dibuat', 'success');
       // notify parent
-      onCreated && onCreated(res.data.data);
+      refresh();
       onClose();
     } catch (err) {
       Swal.close();

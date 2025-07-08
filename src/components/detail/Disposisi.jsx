@@ -20,12 +20,6 @@ export default function Disposisi({data, ID, refreshData, role, me, statusSurat}
   const [disposisiList, setDisposisiList] = useState(data);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  console.log("apa isi me:", statusSurat)
-
-   const handleNewDisposisi = newItem => {
-    setDisposisiList(prev => [...prev, newItem]);
-  };
-
    // sinkronisasi prop data (array)
   useEffect(() => {
     setDisposisiList(Array.isArray(data) ? data : []);
@@ -51,10 +45,8 @@ export default function Disposisi({data, ID, refreshData, role, me, statusSurat}
     }
 
     try {
-      console.log("apa isi paylod:", id)
       Swal.fire({ title: 'Memproses…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       const updated = await updateDisposisiStatus(id, payload);
-      console.log("apa isi updated:", updated)
       Swal.close();
       Swal.fire('Berhasil', `Status diubah menjadi "${updated.data.status}"`, 'success');
       refreshData();
@@ -243,7 +235,7 @@ export default function Disposisi({data, ID, refreshData, role, me, statusSurat}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         suratId={ID}
-        onCreated={handleNewDisposisi}
+        refresh={() => refreshData()}
       />
 
     </div> 

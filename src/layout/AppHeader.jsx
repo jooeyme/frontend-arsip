@@ -43,7 +43,7 @@ const AppHeader = () => {
             console.error("Invalid token", error);
           }
         } else {
-          console.log("no token")
+          console.error("no token")
         }
     
       },[]);

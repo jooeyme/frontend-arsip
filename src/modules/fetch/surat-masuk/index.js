@@ -60,9 +60,10 @@ async function getAllSuratMasuk(page, limit, status="", jenis="") {
     }
 }
 
-async function editSuratMasuk(formData) {
+async function editSuratMasuk(id, formData) {
     try {
-        
+        const response = await instance.put(`/surat-masuk/edit/${id}`, formData);
+        return response.data;
     } catch (error) {
         throw new Error(error.response.data.message || "Something went wrong");
     }
@@ -99,7 +100,6 @@ async function deleteSuratMasuk(id) {
 async function searchSuratMasuk(query) {
     try {
         const response = await instance.get(`/surat-masuk/?query=${query}`);
-        console.log("apa isi responsee:", response)
         return response.data.results;
     } catch (error) {
         console.error("Full error object:", error.message);

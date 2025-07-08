@@ -65,7 +65,6 @@ export default function SuratKeluarTable({
       cancelButtonText: "Tidak",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        console.log("apa isi id:", id)
         try {
           Swal.fire({
             title: 'Memproses...',
@@ -99,12 +98,11 @@ export default function SuratKeluarTable({
   const fetchData = useCallback(async () => {
       try {
         const response = await getAllSuratKeluar( page, limit );
-        console.log("apa isi repsonse:", response.total);
 
         setTableData(response.data);
         setTotal(response.total);
       } catch (error) {
-        console.log("Error fetching Surat Masuk", error);
+        console.error("Error fetching Surat Masuk", error);
       }
     }, [page, limit]);
 
@@ -181,31 +179,31 @@ export default function SuratKeluarTable({
         <div className="min-w-[1102px]">
           <Table>
             {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-100">
               <TableRow>
                 {isSearching ? (
                                 <>
                                   <TableCell 
                                   isHeader
-                                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                                   >
                                     Nomor Agenda
                                   </TableCell>
                                   <TableCell 
                                   isHeader
-                                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                                   >
                                     Nama Dokumen
                                   </TableCell>
                                   <TableCell 
                                   isHeader
-                                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                                   >
                                     Snippet
                                   </TableCell>
                                   <TableCell 
                                   isHeader
-                                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                                   >
                                     Aksi
                                   </TableCell>
@@ -214,37 +212,37 @@ export default function SuratKeluarTable({
                                 <>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Nomor Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Perihal
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Tanggal Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Keterangan
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Status
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start  dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start  dark:text-gray-400"
                 >
                   Aksi
                 </TableCell>

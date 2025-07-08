@@ -44,10 +44,10 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
   const [no_folder, setNo_folder] = useState(data.no_folder);
   const [selectedStatus, setSelectedStatus] = useState(status);
   const [Id, setId] = useState(data.id);
-  const bolehTandaiSelesai = me === 'kadep' && data.status === 'selesai';
+  const bolehTandaiSelesai = me === 'kadep' && data.status === 'selesai' 
   const bolehArsip = me === 'administrasi' && data.status === 'waiting_to_archive';
 
-  console.log("apa data penerima:", me)
+console.log(data)
 
   useEffect(() => {
     if (data) {
@@ -73,20 +73,26 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
       setId(data.id);
     
     }
-    console.log("apa data penerima:", data)
+
   }, [data]);
 
   const handleSaveSuratMasuk = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("no_agenda_masuk", no_agenda_masuk);
-    formData.append("no_surat", no_surat);
-    formData.append("tgl_surat", tgl_surat);
-    formData.append("perihal", perihal);
-    formData.append("asal_surat", asal_surat);
-    formData.append("keterangan", keterangan);
+    // const formData = new FormData();
+    // formData.append("no_surat", no_surat);
+    // formData.append("tgl_surat", tgl_surat);
+    // formData.append("perihal", perihal);
+    // formData.append("asal_surat", asal_surat);
+    // formData.append("keterangan", keterangan);
 
+    const formdata = {
+      no_surat,
+      tgl_surat,
+      perihal,
+      asal_surat,
+      keterangan,
+    };
     try {
       Swal.fire({
         title: "Memproses...",
@@ -96,8 +102,8 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
           Swal.showLoading();
         },
       });
-      const result = await editSuratMasuk(id, formData);
-      console.log("apa isi result:", result);
+      const result = await editSuratMasuk(Id, formdata);
+      
       Swal.close();
       Swal.fire({
         icon: "success",
@@ -128,7 +134,7 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
           Swal.showLoading();
         },
       });
-      console.log("pa isi sttaus:", selectedStatus);
+
       await updateStatusSuratMasuk(Id, selectedStatus);
 
       Swal.close();
@@ -148,16 +154,8 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
     }
     updateModal.closeModal();
   };
-  const options = [
-    { value: "diterima", label: "diterima" },
-    { value: "didisposisikan", label: "didisposisikan" },
-    { value: "diproses", label: "diproses" },
-    { value: "selesai", label: "selesai" },
-  ];
 
-  const handleSelectChange = (value) => {
-    setSelectedStatus(value);
-  };
+
 
   const formatDateString = (dateString) => {
     if (!dateString) return "Invalid date";
@@ -189,6 +187,7 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
         });
 
         refreshData(); // refresh list
+        Swal.close();
       } catch (err) {
         console.error(err);
         Swal.fire({
@@ -228,6 +227,7 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
       });
 
       refreshData();
+      Swal.close();
     } catch (error) {
       console.error(error);
       Swal.fire({
@@ -361,6 +361,7 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
               </p>
               <Badge
                 size="md"
+                variant="solid"
                 color={
                   status === "diterima"
                     ? "light"
@@ -369,13 +370,13 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
                     : status === "diproses"
                     ? "success"
                     : status === "selesai"
-                    ? "primary"
+                    ? "selesai"
+                    : status === "waiting_to_archive"
+                    ? "waiting_to_archive"
                     : status === "diarsipkan"
                     ? "warning"
                     : "error"
                 }
-                className="cursor-pointer"
-                onClick={updateModal.openModal}
               >
                 {status}
               </Badge>
@@ -418,21 +419,21 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
         )}
 
         {bolehTandaiSelesai && (
-          <button
+          <Button
             className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
             onClick={() => handleTandaiSelesai(Id, 'waiting_to_archive')}
           >
             Tandai Selesai
-          </button>
+          </Button>
         )}
 
         {bolehArsip && (
-          <button
+          <Button
             onClick={() => handleArsipSurat(Id)}
             className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Arsipkan
-          </button>
+          </Button>
         )}
       </div>
 
@@ -446,9 +447,7 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               Edit Informasi Surat Masuk
             </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Update your details to keep your profile up-to-date.
-            </p>
+            
           </div>
           <form className="flex flex-col">
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
@@ -458,28 +457,6 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label htmlFor="no_agenda_masuk">Nomor Agenda</Label>
-                    <Input
-                      type="text"
-                      id="no_agenda_masuk"
-                      name="no_agenda_masuk"
-                      value={no_agenda_masuk}
-                      onChange={(e) => setNoAgenda(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label htmlFor="tgl_terima">Tanggal Diterima</Label>
-                    <Input
-                      type="date"
-                      id="tgl_terima"
-                      name="tgl_terima"
-                      value={tgl_terima}
-                      onChange={(e) => setTgl_terima(e.target.value)}
-                    />
-                  </div>
-
                   <div className="col-span-2 lg:col-span-1">
                     <Label htmlFor="no_surat">Nomor Surat</Label>
                     <Input
@@ -492,12 +469,23 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
+                    <Label htmlFor="tgl_terima">Tanggal Diterima</Label>
+                    <Input
+                      type="date"
+                      id="tgl_terima"
+                      name="tgl_terima"
+                      value={format(new Date(tgl_terima), "yyyy-MM-dd")}
+                      onChange={(e) => setTgl_terima(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="col-span-2 lg:col-span-1">
                     <Label htmlFor="tgl_surat">Tanggal Surat</Label>
                     <Input
                       type="date"
                       id="tgl_surat"
                       name="tgl_surat"
-                      value={tgl_surat}
+                      value={format(new Date(tgl_surat), "yyyy-MM-dd")}
                       onChange={(e) => setTgl_surat(e.target.value)}
                     />
                   </div>
@@ -531,20 +519,11 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
                       id="keterangan"
                       name="keterangan"
                       value={keterangan}
-                      onChange={(e) => setKeterangan(e.target)}
+                      onChange={(e) => setKeterangan(e.target.value)}
                     />
                   </div>
 
-                  {/* <div className="col-span-2">
-                    <Label htmlFor="status">Select Input</Label>
-                    <Select
-                      options={options}
-                      placeholder="Select Option"
-                      defaultValue={status}
-                      onChange={handleSelectChange}
-                      className="dark:bg-dark-900"
-                    />
-                  </div> */}
+                  
                 </div>
               </div>
             </div>
@@ -560,56 +539,6 @@ export default function SuratMasukDetail({ id, data, refreshData, me }) {
         </div>
       </Modal>
 
-      <Modal
-        isOpen={updateModal.isOpen}
-        onClose={updateModal.closeModal}
-        className="max-w-[700px] m-4 "
-      >
-        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Edit Informasi Surat Masuk
-            </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Update your details to keep your profile up-to-date.
-            </p>
-          </div>
-          <form className="flex flex-col">
-            <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
-              <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Informasi Surat Masuk
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2">
-                    <Label htmlFor="status">Select Input</Label>
-                    <Select
-                      options={options}
-                      placeholder="Select Option"
-                      defaultValue={status}
-                      onChange={handleSelectChange}
-                      className="dark:bg-dark-900"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={updateModal.closeModal}
-              >
-                Close
-              </Button>
-              <Button size="sm" variant="submit" onClick={handleUpdateStatus}>
-                Save Changes
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Modal>
     </div>
   );
 }

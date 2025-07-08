@@ -24,13 +24,12 @@ export default function DetailSuratKeluar() {
       const response = await getByIdSuratKeluar(id);
       const track = await getTrackSuratKeluar(id);
       const review  = await getReviewsBySuratId(id);
-      console.log("apa isi repsonse:", review.data);
       setDetailData(response.data);
       setDataDocument(response.data.documents);
       setDataTrack(track.data);
       setReviews(review.data);
     } catch (error) {
-      console.log("Error fetching Surat keluar", error);
+      console.error("Error fetching Surat keluar", error);
     }
   }, [id]);
 

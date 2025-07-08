@@ -19,9 +19,9 @@ export default function Dashboard() {
             const response = await getDashboardStats();
 
             setStats(response);
-            console.log("apa isi stat:",response.masuk)
+            
         } catch (error) {
-            console.log("Error fetching data", error.message);
+            console.error("Error fetching data", error.message);
         }
     }
 

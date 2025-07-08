@@ -38,17 +38,17 @@ async function getUserById(id) {
 
 async function updateUser(id, formData) {
     try {
-        const response = await instance.patch(`/user/edit/${id}`, formData);
+        const response = await instance.put(`/user/edit/${id}`, formData);
         return response.data;
     } catch (error) {
-        throw new Error(error.message.data.message || "Something went wrong");
+        throw new Error(error.message?.data?.message || "Something went wrong");
     }
 }
 
 async function deleteUser(id) {
     try {
         const response = await instance.delete(`/user/delete/${id}`);     
-        return response.data;   
+        return response;   
     } catch (error) {
         throw new Error(error.message.data.message || "Something went wrong");
     }
@@ -72,6 +72,24 @@ async function getProfile() {
     }
 }
 
+async function resetPassword(token, formData) {
+  try {
+    const response = await instance.post(`/user/reset-password/${token}`, formData);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.message || "Something went wrong");
+  }
+}
+
+async function forgotPassword(id) {
+  try {
+    const response = await instance.post(`/user/forgot-password/${id}`,);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.message || "Something went wrong");
+  }
+}
+
 export {
     Login,
     createUser,
@@ -80,5 +98,7 @@ export {
     getUserById,
     updateUser,
     deleteUser,
-    getProfile
+    getProfile,
+    resetPassword,
+    forgotPassword
 }

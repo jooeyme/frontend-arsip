@@ -41,8 +41,6 @@ export default function SuratKeluarDetail({id, me, data, refreshData}) {
     setSignedFile(file)
   }
 
-  console.log("idi dai id:", data.no_agenda_keluar)
-
   useEffect(() => {
     if (data) {
       setNoSurat(data.no_surat || "");
@@ -63,8 +61,6 @@ export default function SuratKeluarDetail({id, me, data, refreshData}) {
   const handleSaveSuratKeluar = async(e) => {
     e.preventDefault();
 
-    console.log("Current status:", status);
-
     const formData = new FormData();
     formData.append("no_surat", no_surat);
     formData.append("tgl_surat", tgl_surat);
@@ -72,8 +68,6 @@ export default function SuratKeluarDetail({id, me, data, refreshData}) {
     formData.append("ditujukan", ditujukan)
     formData.append("keterangan", keterangan);
     formData.append("status", status);
-
-    console.log("data yang dikirim:", formData)
 
     try {
       Swal.fire({
@@ -85,7 +79,6 @@ export default function SuratKeluarDetail({id, me, data, refreshData}) {
         }
       });
       const result = await editSuratKeluar(id, formData);
-      console.log("apa isi result:", result);
 
       Swal.close();
       Swal.fire({
@@ -243,8 +236,6 @@ export default function SuratKeluarDetail({id, me, data, refreshData}) {
     if (!signedFile) return alert('Pilih dulu file signed-nya')
     const fd = new FormData();
     fd.append('file', signedFile);
-    console.log("apa isi id:", id)
-    console.log('apa isi file', fd)
     try {
       Swal.fire({
         title: "Memproses...",

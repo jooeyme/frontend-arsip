@@ -12,7 +12,7 @@ import { FileText, Inbox, Send, CheckCircle, XCircle } from "lucide-react";
 
 export default function StatsCard({stats}) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Card className="rounded-2xl shadow-sm">
           <CardContent className="flex items-center gap-4 py-4">
             <div className="p-2 bg-gray-100 rounded-full">
@@ -41,8 +41,8 @@ export default function StatsCard({stats}) {
                 <FileText className="text-purple-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Dokumen</p>
-              <h4 className="text-xl font-semibold text-gray-800">{stats.dokumen}</h4>
+              <p className="text-sm text-gray-500">Diarsipkan</p>
+              <h4 className="text-xl font-semibold text-gray-800">{stats.arsip}</h4>
             </div>
           </CardContent>
         </Card>
@@ -52,12 +52,12 @@ export default function StatsCard({stats}) {
                 <CheckCircle className="text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Disposisi</p>
-              <h4 className="text-xl font-semibold text-gray-800">{stats.disposisi}</h4>
+              <p className="text-sm text-gray-500">Aktif</p>
+              <h4 className="text-xl font-semibold text-gray-800">{stats.active}</h4>
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl shadow-sm">
+        {/* <Card className="rounded-2xl shadow-sm">
           <CardContent className="flex items-center gap-4 py-4">
             <div className="p-2 bg-gray-100 rounded-full">
                 <XCircle className="text-red-500" />
@@ -67,7 +67,7 @@ export default function StatsCard({stats}) {
               <h4 className="text-xl font-semibold text-gray-800">{stats.ditolak}</h4>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       
     </div>
   );

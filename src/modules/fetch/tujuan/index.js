@@ -18,7 +18,18 @@ async function createTujuan(formData) {
     }
 }
 
+async function deleteTujuan(id) {
+    try {
+        const response = await instance.delete(`/tujuan/delete/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || "Something went wrong");
+    }
+}
+
+
 export {
  getAllTujuan,
- createTujuan
+ createTujuan,
+ deleteTujuan
 }

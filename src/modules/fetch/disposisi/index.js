@@ -51,7 +51,7 @@ async function editDisposisi(id, formData) {
 
 async function updateDisposisiStatus(id, formData) {
     try {
-        const response = await instance.patch(`/disposisi/${id}/status`, formData);
+        const response = await instance.put(`/disposisi/${id}/status`, formData);
         return response.data;
     } catch (error) {
         throw new Error(error.response.data.message || "Something went wrong");

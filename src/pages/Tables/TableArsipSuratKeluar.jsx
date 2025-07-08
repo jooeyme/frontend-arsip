@@ -26,7 +26,6 @@ export default function TableArsipSuratKeluar() {
     setLoading(true);
     try {
       const results = await searchSuratKeluar(kw);
-      console.log(results)
       setResults(results);
     } catch (err) {
       console.error("Error:", err.message);
@@ -72,9 +71,9 @@ export default function TableArsipSuratKeluar() {
         title="React.js Basic Tables Dashboard | TailAdmin - Next.js Admin Dashboard Template"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       /> */}
-      <PageBreadcrumb pageTitle="Arsip Surat Keluar Tables" />
+      <PageBreadcrumb pageTitle="Arsip Surat Keluar" />
       <div className="space-y-6">
-        <ComponentCard title="Arsip Table Surat Keluar">
+        <ComponentCard title="Tabel Arsip Surat Keluar">
           <Button
             size="sm"
             variant="outline"

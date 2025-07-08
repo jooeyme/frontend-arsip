@@ -1,47 +1,68 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Input from "../input/InputField";
 
-import Select from 'react-select';
+import Select from "react-select";
 import Button from "../../ui/button/Button";
 import { createSuratMasuk } from "../../../modules/fetch/surat-masuk";
 import Swal from "sweetalert2";
 import DropzoneDocument from "./InputDocument";
 import { getUserName } from "../../../modules/fetch/user";
+import {
+  getAllKlasifikasi,
+  createKlasifikasi,
+} from "../../../modules/fetch/klasifikasi";
+import {
+  getAllTembusan,
+  createTembusan,
+} from "../../../modules/fetch/tembusan";
 import MultiSelect from "../MultiSelect";
+import { useNavigate } from "react-router-dom";
 
 export default function InputSuratMasuk() {
+  const navigate = useNavigate();
   const [formValues, setFormValues] = useState({
-    no_agenda_masuk: '',
-    tgl_terima: '',
-    no_surat: '',
-    tgl_surat: '',
-    perihal: '',
-    asal_surat: '',
-    keterangan: '',
-    jenis: '',
-    sifat: '',
-    penerima: '',
-    tembusan: '',
-  })
+
+    tgl_terima: "",
+    no_surat: "",
+    tgl_surat: "",
+    perihal: "",
+    asal_surat: "",
+    keterangan: "",
+    jenis: "",
+    sifat: "",
+    penerima: "",
+    tembusan: "",
+    klasId: "",
+  });
   const [penerimaIds, setPenerimaIds] = useState([]);
   const [dokumen_utama, setDokumenUtama] = useState(null);
   const [lampiran, setLampiran] = useState([]);
-  const [users, setUsers] = useState([])
-  const optionsPenerimaIds = users.map(u => ({ value: u.id.toString(), label: u.nama_lengkap, selected: false }));
+  const [users, setUsers] = useState([]);
+
+  //Tembusan Surat
+  const [tembusanOptions, setTembusamOptions] = useState([]);
+  const [createTembusanMode, setCreateTembusanMode] = useState(false);
+  const [newNameTembusan, setNewNameTembusan] = useState("");
+  const tembusanRef = useRef(null);
+
+  //Klasifikasi Surat
+  const [classOptions, setClassOptions] = useState([]);
+  const [createMode, setCreateMode] = useState(false);
+  const [newKode, setNewKode] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    
-      (async () => {
-        try {
-          const res = await getUserName();
-          setUsers(res.data);
-        } catch (err) {
-          console.error("Error fetching users", err);
-        }
-      })();
-    
+    (async () => {
+      try {
+        const res = await getUserName();
+        setUsers(res.data);
+      } catch (err) {
+        console.error("Error fetching users", err);
+      }
+    })();
   }, []);
 
   const options = [
@@ -58,20 +79,136 @@ export default function InputSuratMasuk() {
     { value: "penting", label: "Penting" },
     { value: "sangat_penting", label: "Sangat Penting" },
     { value: "biasa", label: "Biasa" },
-  ]
+  ];
 
-  const handleSelectChange = (value) => {
-      setFormValues(prev => ({
+  const handleSelectChange = (opt) => {
+    
+    setFormValues((prev) => ({
       ...prev,
-      jenis: value,
-      sifat: value
+      jenis: opt.value,
     }));
+  };
+
+  const handleSelectChangeSifat = (opt) => {
+    
+    setFormValues((prev) => ({
+      ...prev,
+      sifat: opt.value,
+    }));
+  };
+
+  const handleSelectChangeKlas = (value) => {
+    setFormValues((prev) => ({
+      ...prev,
+      klasId: value.value,
+    }));
+  };
+
+  async function fetchKlas() {
+    try {
+      const res = await getAllKlasifikasi();
+      const opts = res.map((item) => ({
+        value: item.id,
+        label: item.deskripsi,
+      }));
+      setClassOptions(opts);
+    } catch (error) {
+      console.error("gagal fetch klasifikasi", error);
+    }
+  }
+
+  //Tembusan Surat
+  async function fetchTembusan() {
+    try {
+      const tembusan = await getAllTembusan();
+      const tembusanOpts = tembusan.map((item) => ({
+        value: item.nama,
+        label: item.nama,
+      }));
+      setTembusamOptions(tembusanOpts);
+    } catch (error) {
+      console.error("gagal fetch tujuan", error);
+    }
+  }
+
+  const handleAddClassClick = () => {
+    setCreateMode(true);
+    setNewKode("");
+    setNewDesc("");
+  };
+
+  useEffect(() => {
+    fetchKlas();
+    fetchTembusan();
+    function onClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setCreateMode(false);
+      }
+
+      if (tembusanRef.current && !tembusanRef.current.contains(e.target)) {
+        setCreateTembusanMode(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const handleAddClass = async () => {
+    if (!newKode.trim() || !newDesc.trim()) return;
+    try {
+      const created = await createKlasifikasi({
+        kode: newKode,
+        deskripsi: newDesc,
+      });
+      // update options
+      const option = { value: created.id, label: created.deskripsi };
+      setClassOptions((prev) => [...prev, option]);
+      setFormValues((prev) => ({ ...prev, klasId: created.id }));
+      setCreateMode(false);
+      fetchKlas();
+    } catch (err) {
+      console.error("Error creating klasifikasi", err);
+      Swal.fire("Error", err.message || "Gagal membuat klasifikasi", "error");
+    }
+  };
+
+  //Tembusan
+  const onSelectTembusan = (v) => {
+    setFormValues((prev) => ({
+      ...prev,
+      tembusan: v ? v.map((o) => o.value) : [],
+    }));
+    setCreateTembusanMode(false);
+  };
+
+  const onAddTembusan = () => {
+    setCreateTembusanMode(true);
+    setNewNameTembusan("");
+  };
+
+  const handleAddTembusan = async () => {
+    if (!newNameTembusan) return;
+    try {
+      const created = await createTembusan({ nama: newNameTembusan });
+      const option = { value: created.nama, label: created.nama };
+      setTembusamOptions((prev) => [...prev, option]);
+      setFormValues((prev) => ({ ...prev, tembusan: created.nama }));
+      setCreateTembusanMode(false);
+      fetchTembusan();
+    } catch (error) {
+      console.error("Error creating Nama tembusan", error);
+      Swal.fire(
+        "Error",
+        error.message || "Gagal membuat nama tembusan baru",
+        "error"
+      );
+    }
   };
 
   const handleChange = (e) => {
     setFormValues({
       ...formValues,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -84,77 +221,131 @@ export default function InputSuratMasuk() {
         if (val !== undefined && val !== null) data.append(Key, val);
       });
       penerimaIds.forEach((id) => {
-        data.append('penerimaIds[]', id); // array name pakai [] agar backend bisa baca array
+        data.append("penerimaIds[]", id); // array name pakai [] agar backend bisa baca array
       });
 
-      if (dokumen_utama) data.append('dokumen_utama', dokumen_utama);
-      lampiran.forEach((file) => data.append('lampiran', file));
+      if (dokumen_utama) data.append("dokumen_utama", dokumen_utama);
+      lampiran.forEach((file) => data.append("lampiran", file));
 
       Swal.fire({
-        title: 'Memproses...',
-        text: 'Mohon tunggu sebentar',
+        title: "Memproses...",
+        text: "Mohon tunggu sebentar",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
-        }
+        },
       });
-      console.log('apa isi data yang dikirim:', data)
 
       const response = await createSuratMasuk(data);
-      console.log('Surat berhasil dibuat:', response.data);
 
       Swal.close();
 
       Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: 'Data Surat Masuk berhasil ditambahkan!',
+        icon: "success",
+        title: "Berhasil!",
+        text: "Data Surat Masuk berhasil ditambahkan!",
       });
 
       setFormValues({
-        no_agenda_masuk: '',
-        tgl_terima: '',
-        no_surat: '',
-        tgl_surat: '',
-        perihal: '',
-        asal_surat: '',
-        keterangan: '',
-        jenis: '',
-        sifat: '',
-        penerima: '',
-        tembusan: ''
+    
+        tgl_terima: "",
+        no_surat: "",
+        tgl_surat: "",
+        perihal: "",
+        asal_surat: "",
+        keterangan: "",
+        jenis: "",
+        sifat: "",
+        penerima: "",
+        tembusan: "",
+        klasId: '',
       });
       setDokumenUtama(null);
       setLampiran([]);
+      navigate("/letter-in-tables");
     } catch (error) {
       console.error(error);
       Swal.close();
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: error.message || 'Terjadi kesalahan saat input data.',
+        icon: "error",
+        title: "Gagal!",
+        text: error.message || "Terjadi kesalahan saat input data.",
       });
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div className="space-y-6">
           <ComponentCard title="Input Data Surat Masuk">
             <div className="space-y-6">
-              <div>
-                <Label htmlFor="no_agenda_masuk">Nomor Agenda</Label>
-                <Input
-                  type="text"
-                  id="no_agenda_masuk"
-                  name="no_agenda_masuk"
-                  value={formValues.no_agenda_masuk}
-                  onChange={handleChange}
-                  placeholder="nomor agenda surat masuk"
-                  required
-                />
+              <div ref={containerRef}>
+                <Label htmlFor="klasId">Klasifikasi Surat</Label>
+                <div className="flex gap-4">
+                  <Select
+                    options={classOptions}
+                    placeholder="Select an option"
+                    onChange={handleSelectChangeKlas}
+                    disabled={createMode}
+                    value={classOptions.find(
+                      (o) => o.value === formValues.klasId
+                    )}
+                    className="basic-multi-select w-full"
+                  />
+                  {!createMode && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleAddClassClick}
+                    >
+                      +Tambah
+                    </Button>
+                  )}
+                </div>
+
+                {createMode && (
+                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="">
+                      <Label htmlFor="newKode">Kode</Label>
+                      <Input
+                        type="text"
+                        id="newKode"
+                        placeholder="Kode"
+                        value={newKode}
+                        onChange={(e) => setNewKode(e.target.value)}
+                      />
+                    </div>
+                    <div className="">
+                      <Label htmlFor="newDesc">Deskripsi</Label>
+                      <Input
+                        type="text"
+                        id="newDesc"
+                        placeholder="Deskripsi"
+                        value={newDesc}
+                        onChange={(e) => setNewDesc(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-end space-x-2 md:col-span-2">
+                      <Button
+                        type="button"
+                        variant="submit"
+                        onClick={handleAddClass}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setCreateMode(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div>
                 <Label htmlFor="tgl_terima">Tanggal Diterima</Label>
                 <div className="relative">
@@ -236,7 +427,7 @@ export default function InputSuratMasuk() {
                 <Label htmlFor="sifat">Sifat</Label>
                 <Select
                   options={sifatOptions}
-                  onChange={handleSelectChange}
+                  onChange={handleSelectChangeSifat}
                   placeholder="Select an Option"
                   className="dark:bg-dark-900"
                 />
@@ -246,18 +437,20 @@ export default function InputSuratMasuk() {
                 <Select
                   isMulti
                   label="Multiple Select Options"
-                  options={users.map((u) => ({ value: u.id.toString(), label: u.nama_lengkap }))}
+                  options={users.map((u) => ({
+                    value: u.id.toString(),
+                    label: u.nama_lengkap,
+                  }))}
                   defaultSelected={[]}
                   onChange={(selectedOptions) => {
-  const ids = selectedOptions
-    ? selectedOptions.map(opt => Number(opt.value))
-    : [];
-  setPenerimaIds(ids);
-}}
+                    const ids = selectedOptions
+                      ? selectedOptions.map((opt) => Number(opt.value))
+                      : [];
+                    setPenerimaIds(ids);
+                  }}
                 />
-
               </div>
-              <div>
+              {/* <div>
                 <Label htmlFor="tembusan">Tembusan</Label>
                 <Input
                   type="text"
@@ -267,11 +460,56 @@ export default function InputSuratMasuk() {
                   onChange={handleChange}
                   placeholder=""
                 />
+              </div> */}
+
+              <div ref={tembusanRef}>
+                <Label htmlFor="tembusan">Tembusan</Label>
+                <div className="flex gap-4">
+                  <Select
+                    isMulti
+                    options={tembusanOptions}
+                    defaultSelected={[]}
+                    onChange={onSelectTembusan}
+                    className="basic-multi-select w-full"
+                  />
+                  {!createTembusanMode && (
+                    <Button size="sm" variant="outline" onClick={onAddTembusan}>
+                      +Tambah
+                    </Button>
+                  )}
+                </div>
+
+                {createTembusanMode && (
+                  <div className=" mt-2 flex gap-2 items-end">
+                    <div className="">
+                      <Label htmlFor="NewNameTembusan">Nama Tembusan</Label>
+                      <Input
+                        type="text"
+                        placeholder="Nama Tembusan"
+                        value={newNameTembusan}
+                        onChange={(e) => setNewNameTembusan(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleAddTembusan}
+                      variant="submit"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCreateTembusanMode(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </ComponentCard>
         </div>
-        
 
         <DropzoneDocument
           onAttachmentsChange={setLampiran}

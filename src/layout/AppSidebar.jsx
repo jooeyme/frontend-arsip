@@ -72,20 +72,34 @@ const navItems = [
       // { name: "Basic Tables", path: "/basic-tables", pro: false },
       { name: "Daftar Surat Keluar", path: "/letter-out-tables", pro: false },
       { name: "Input Surat Keluar", path: "/form-surat-keluar", pro: false, allowedRoles: ["super_admin", "administrasi"], },
+      { name: "Input Arsip Surat Keluar", path: "/archive-surat-keluar", pro: false, allowedRoles: ["super_admin", "administrasi"], },
       { name: "Arsip Surat Keluar", path: "/arsip-surat-keluar", pro: false }
+    ],
+  },
+  {
+    name: "Data Master",
+    icon: <img src={PlugInIcon} alt="Grid Icon"/>,
+    allowedRoles: ["administrasi"],
+    subItems: [
+      // { name: "Basic Tables", path: "/basic-tables", pro: false },
+      { name: "Pengguna", path: "/atur-pengguna", pro: false },
+      { name: "Pegawai", path: "/atur-pegawai", pro: false, allowedRoles: ["super_admin", "administrasi"], },
+      { name: "Klasifikasi Surat", path: "/atur-klasifikasi", pro: false },
+       { name: "Tujuan Surat", path: "/atur-tujuan", pro: false },
+       { name: "Tembusan Surat", path: "/atur-tembusan", pro: false },
     ],
   },
 ];
 
 const othersItems = [
-  {
-    icon: <img src={PlugInIcon} alt="Grid Icon"/>,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  },
+  // {
+  //   icon: <img src={PlugInIcon} alt="Grid Icon"/>,
+  //   name: "Authentication",
+  //   subItems: [
+  //     { name: "Sign In", path: "/signin", pro: false },
+  //     { name: "Sign Up", path: "/signup", pro: false },
+  //   ],
+  // },
 ];
 
 const AppSidebar = () => {
@@ -367,7 +381,7 @@ const AppSidebar = () => {
             </div>
             </nav>
 
-            <div className="mt-auto mb-6">
+            {/* <div className="mt-auto mb-6">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
@@ -382,7 +396,7 @@ const AppSidebar = () => {
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
-            </div>
+            </div> */}
           
         
       </div>

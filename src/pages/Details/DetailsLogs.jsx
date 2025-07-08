@@ -6,7 +6,7 @@ import Badge  from "../../components/ui/badge/Badge";
 import Button from "../../components/ui/button/Button";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { getAllLog } from "../../modules/fetch/log-perubahan";
+import { getAllLog, markAsRead } from "../../modules/fetch/log-perubahan";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 export default function LogPerubahanList() {
@@ -22,14 +22,26 @@ export default function LogPerubahanList() {
     try {
       const res = await getAllLog();
       setLogs(res.data);
-      console.log("isi logs:", res.data)
     } catch (err) {
       console.error("Failed to fetch logs:", err);
     }
   };
 
-  const toggleExpanded = (id) => {
-    console.log("ada ga")
+  
+  const markRead = async (id) => {
+    try {
+      await markAsRead(id);
+      fetchLogs(); // Refresh setelah ditandai terbaca
+    } catch (err) {
+      console.error("Gagal menandai log:", err?.response?.data || err.message);
+    }
+  };  
+
+  const toggleExpanded = (id, isAsreadyRead) => {
+    if (!isAsreadyRead) {
+      markRead(id);
+    }
+
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
@@ -50,11 +62,10 @@ export default function LogPerubahanList() {
         return (
         <Card
           key={log.id}
-          className="hover:shadow-md transition cursor-pointer"
-          
+          className="hover:shadow-md transition cursor-pointer" 
         >
-            <div
-    onClick={() => toggleExpanded(log.id)}
+        <div
+    onClick={() => toggleExpanded(log.id, log.isRead)}
     className="cursor-pointer"
   >
           <CardContent className="py-4 space-y-1">
@@ -62,7 +73,11 @@ export default function LogPerubahanList() {
               <h3 className="text-lg font-medium text-gray-800">
                 {log.keterangan || "- Tidak ada keterangan -"}
               </h3>
-              {!log.isRead && <Badge variant="destructive">Baru</Badge>}
+              {!log.isRead && 
+                <span className="ml-2 text-xs text-white bg-blue-500 rounded px-2 py-0.5">
+                  Baru
+                </span>
+              }
             </div>
             <p className="text-sm text-gray-500">
               {formatDistanceToNow(new Date(log.createdAt), {
@@ -70,6 +85,7 @@ export default function LogPerubahanList() {
                 locale: id,
               })}
             </p>
+            <p className="text-sm text-gray-600">User: {log.User.nama_lengkap}</p>
             <p className="text-sm text-gray-600">Aksi: {log.aksi}</p>
             {isExpanded && log.perubahan && (
                   <div className="text-sm text-gray-700 space-y-1">

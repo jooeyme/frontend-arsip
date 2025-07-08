@@ -29,7 +29,7 @@ export default function DetailSuratMasuk() {
         setStatusSurat(response.data.status);
         setDataTrack(track.data)
       } catch (error) {
-        console.log("Error fetching Surat Masuk", error);
+        console.error("Error fetching Surat Masuk", error);
       }
     }, [id])
 
@@ -37,8 +37,7 @@ export default function DetailSuratMasuk() {
     fetchData();
   },[fetchData]);
 
-   console.log('user:', user)
-  console.log('user:', loading)
+ 
 
 
   if (loading)   return <p>Loading…</p>;
@@ -59,7 +58,7 @@ export default function DetailSuratMasuk() {
           <TrackSuratMasuk events={dataTrack}/>
           <SuratMasukDetail id={id} data={detailData} refreshData={fetchData} me={role}/>
           <Disposisi data={disposisi} ID={no_agenda} refreshData={fetchData} role={role} me={me} statusSurat={statusSurat}/>
-          <Document data={dataDocument} me={role}/>
+          <Document data={dataDocument} me={role} refreshData={fetchData}/>
         </div>
       </div>
     </>

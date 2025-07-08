@@ -12,6 +12,18 @@ async function createSuratKeluar(formData) {
     }
 }
 
+async function uploadSuratKeluarArchived(formData) {
+    try {
+        const response = await instance.post('/surat-keluar/archive', formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }});
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || "Something went wrong");
+    }
+}
+
 async function getByIdSuratKeluar(id) {
     try {
         const response = await instance.get(`/surat-keluar/${id}`);
@@ -74,7 +86,6 @@ async function getSuratKeluarByUser() {
 async function searchSuratKeluar(query) {
     try {
         const response = await instance.get(`/surat-keluar/?query=${query}`);
-        console.log("apa isi responsee:", response)
         return response.data.results;
     } catch (error) {
         console.error("Full error object:", error.message);
@@ -165,7 +176,6 @@ async function getArchivedSuratKeluar(page, limit) {
         const response = await instance.get('/surat-keluar/archived', {
             params: {page, limit}
         });
-        console.log('apa isi logging:', response)
         return response.data;
     } catch (error) {
         throw new Error(error.response.data.message || "Something went wrong");
@@ -177,6 +187,7 @@ export {
     getDashboardSuratKeluar,
     archiveSuratKeluar,
     searchSuratKeluar,
+    uploadSuratKeluarArchived,
     createSuratKeluar,
     getAllSuratKeluar,
     getByIdSuratKeluar,

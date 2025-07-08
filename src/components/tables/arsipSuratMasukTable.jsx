@@ -37,6 +37,40 @@ function highlightText(text, keyword) {
   );
 }
 
+function renderFieldWithHighlight(hit, fieldName) {
+  if (hit.highlight && hit.highlight[fieldName]) {
+    // ES mengembalikan array string, ambil snippet pertama
+    return (
+      <span
+        className="text-theme-sm"
+        dangerouslySetInnerHTML={{ __html: hit.highlight[fieldName][0] }}
+      />
+    );
+  }
+
+  const value = hit.source[fieldName];
+  if (value == null) {
+    return <span className="text-theme-sm">–</span>;
+  }
+
+  // Jika ini field "content", potong hingga 100 karakter
+  if (fieldName === "content") {
+    const maxLen = 100;
+    const text = String(value);
+    if (text.length <= maxLen) {
+      return <span className="text-theme-sm">{text}</span>;
+    } else {
+      // Ambil 100 karakter pertama dan tambahkan "..."
+      const truncated = text.slice(0, maxLen).trimEnd() + "...";
+      return <span className="text-theme-sm">{truncated}</span>;
+    }
+  }
+
+  // fallback ke source asli
+  return <span className="text-theme-sm">{value}</span>;
+}
+
+
 export default function ArsipSuratMasukTable({
   me, 
   keyword = "",
@@ -65,7 +99,6 @@ export default function ArsipSuratMasukTable({
       cancelButtonText: "Tidak",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        console.log("apa isi id:", id)
         try {
           Swal.fire({
             title: 'Memproses...',
@@ -98,14 +131,12 @@ export default function ArsipSuratMasukTable({
 
   const fetchData = useCallback(async () => {
       try {
-        console.log("apa isi repsonse:");
         const response = await getArchivedSuratMasuk( page, limit );
-        console.log("apa isi repsonse:", response);
 
         setTableData(response.data);
         setTotal(response.total);
       } catch (error) {
-        console.log("Error fetching Surat Masuk", error);
+        console.error("Error fetching Surat Masuk", error);
       }
     }, [page, limit]);
 
@@ -168,7 +199,7 @@ export default function ArsipSuratMasukTable({
         <div>
           <label className="mr-2">Show:</label>
           <select value={limit} onChange={handleLimitChange} className="border cursor-pointer p-1 rounded">
-            <option value={2}>5</option>
+            <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
             <option value={100}>100</option>
@@ -182,31 +213,43 @@ export default function ArsipSuratMasukTable({
         <div className="min-w-[1102px]">
           <Table>
             {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-100">
               <TableRow>
                 {isSearching ? (
                 <>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Nomor Agenda
+                  </TableCell>
+                  <TableCell 
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Nomor Surat
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
-                    Nama Dokumen
+                    Perihal
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
-                    Snippet
+                    Keterangan
                   </TableCell>
                   <TableCell 
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Konten
+                  </TableCell>
+                  <TableCell 
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                   >
                     Aksi
                   </TableCell>
@@ -215,49 +258,43 @@ export default function ArsipSuratMasukTable({
                 <>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Nomor Agenda
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Perihal
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Tanggal Diterima
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Nomor Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
-                  Tanggal Surat
+                  Perihal
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
+                >
+                  Tanggal Diterima
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Asal Surat
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Status
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-700 text-start text-theme-xs dark:text-gray-400"
                 >
                   Aksi
                 </TableCell>
@@ -269,7 +306,7 @@ export default function ArsipSuratMasukTable({
             {/* Table Body */}
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {isSearching && hasSearchResult && searchResults.map(item => {
-              const src = item._source;
+              const src = item.source;
               const snippet = src.content
                 .split(" ")
                 .slice(0, 15)
@@ -277,15 +314,21 @@ export default function ArsipSuratMasukTable({
               return (
                 <TableRow key={item._id}>
                   <TableCell className="px-5 py-4 sm:px-6 text-start font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                  {src.no_surat}
+                  {renderFieldWithHighlight(item, "no_agenda_masuk")}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 sm:px-6 text-start font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                  {renderFieldWithHighlight(item, "no_surat")}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {src.perihal}
+                    {renderFieldWithHighlight(item, "perihal")}
                     </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {renderFieldWithHighlight(item, "keterangan")}
+                      </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {highlightText(snippet, keyword)}
+                    {renderFieldWithHighlight(item, "content")}
                   </TableCell>
-                  <TableCell className="flex gap-2">
+                  <TableCell className="flex px-4 py-3 gap-2.5 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <Button size="sm" variant="edit" onClick={() => handleEdit(src.id)}>
                       detail
                     </Button>
@@ -309,16 +352,13 @@ export default function ArsipSuratMasukTable({
                     {order.no_agenda_masuk}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    {order.no_surat}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     {order.perihal}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     {formatDateString(order.tgl_terima)}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {order.no_surat}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {formatDateString(order.tgl_surat)}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     {order.asal_surat}

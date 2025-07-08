@@ -18,7 +18,17 @@ async function createKlasifikasi(formData) {
     }
 }
 
+async function deleteKlasifikasi(id) {
+    try {
+        const response = await instance.delete(`/klasifikasi-surat/delete/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || "Something went wrong");
+    }
+}
+
 export {
  getAllKlasifikasi,
- createKlasifikasi
+ createKlasifikasi,
+ deleteKlasifikasi
 }

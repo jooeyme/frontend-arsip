@@ -112,9 +112,9 @@ const DropzoneDocument = ({ onMainFileChange, onAttachmentsChange, showLampiran 
               isMainDrag ? 'border-brand-500 bg-gray-100 dark:bg-gray-800' : 'hover:border-brand-500'
             }`}>
             <input {...getMainInput()} />
-            <p className="mb-2 text-gray-500 font-medium">Berkas Utama (PDF, max 1)</p>
+            <p className="mb-2 text-gray-500 font-medium">Berkas Utama (PDF, 1 file)</p>
             
-              <p className="text-sm text-gray-400">Drag & drop PDF di sini atau klik untuk memilih file</p>
+              <p className="text-sm text-gray-400">Drag & drop PDF di sini atau klik untuk memilih file (maximum 10mb)</p>
           
           </div>
         </div>
@@ -167,9 +167,9 @@ const DropzoneDocument = ({ onMainFileChange, onAttachmentsChange, showLampiran 
               isAttachDrag ? 'border-brand-500 bg-gray-100 dark:bg-gray-800' : 'hover:border-brand-500'
             }`}>
             <input {...getAttachInput()} />
-            <p className="mb-2 text-gray-500 font-medium">Lampiran (PDF, multiple)</p>
+            <p className="mb-2 text-gray-500 font-medium">Lampiran (PDF, up to 5 files)</p>
             
-            <p className="text-sm text-gray-400">Drag & drop PDF di sini atau klik untuk memilih file</p>
+            <p className="text-sm text-gray-400">Drag & drop PDF di sini atau klik untuk memilih file (maximum 10mb)</p>
             
           </div>
         </div>

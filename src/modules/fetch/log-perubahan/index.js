@@ -11,8 +11,8 @@ async function getAllLog() {
 
 async function markAsRead(logId) {
     try {
-        await instance.patch(`/log/${logId}/read`);
-        
+        const response = await instance.patch(`/log/${logId}/read`);
+        return response.data;
     } catch (error) {
         throw new Error(error.response.data.message || "Something went wrong");
     }

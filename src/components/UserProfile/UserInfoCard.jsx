@@ -13,28 +13,11 @@ export default function UserInfoCard({userData}) {
 
   const handleSave = () => {
     // Handle save logic here
-    console.log("Saving changes...");
+    
     closeModal();
   };
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-
-  //   if (token) {
-  //     try {
-  //       const decodedToken = jwtDecode(token);
-  //       setUserData(decodedToken);
-  //       console.log("apa isi token:", decodedToken);
-        
-  //     } catch (error) {
-  //       console.error("Invalid token", error);
-      
-  //     }
-  //   } else {
-  //     console.log("no token")
-  //   }
-
-  // },[]);
+ 
 
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">

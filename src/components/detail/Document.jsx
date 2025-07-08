@@ -2,12 +2,18 @@ import React, {useState, useEffect} from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
+import Select from 'react-select';
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { useDropzone } from "react-dropzone";
 import { FaRegFilePdf } from "react-icons/fa";
 import { editDocument, createDocument } from "../../modules/fetch/dokumen";
 import Swal from "sweetalert2";
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { useAuth } from "../../context/AuthContext";
   function extractFileId(url) {
     return url.split("/d/")[1]?.split("/")[0] || null;
@@ -20,10 +26,17 @@ export default function Document({data, refreshData, me}) {
   // const {isOpenForm, openModalForm, closeModalForm} = useModal();
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedDocx, setSelectedDocx] = useState('');
-  const [no_agendaMasuk, setNo_agendaMasuk] = useState('');
-  const [no_agendaKeluar, setNo_agendaKeluar] = useState('');
   const [id, setId] = useState('');
+  const [type_doc, setType_doc] = useState('');
 
+  const typeOpt = [
+        { value: "berkas surat", label: "Berkas Surat" },
+        { value: "lampiran", label: "Lampiran" },
+    ]
+
+    const handleSelectChangeType = (value) => {
+      setType_doc(value.value) 
+  };
   const order = ['berkas surat','signed','draft','lampiran'];
     const weight = order.reduce((acc, type, idx) => {
       acc[type] = idx;
@@ -39,22 +52,8 @@ export default function Document({data, refreshData, me}) {
   
 
     
-  const handleAmbilID = (data) => {
-    const id_masuk = data.find(item => item.no_agenda_masuk !== null);
-
-    const id_keluar = data.find(item => item.no_agenda_keluar !== null);
-
-    setNo_agendaMasuk(id_masuk ? id_masuk.no_agenda_masuk : '');
-    setNo_agendaKeluar(id_keluar ? id_keluar.no_agenda_keluar : '');
-  }
-  
-  useEffect(() => {
-
-    handleAmbilID(data);
-  }, [data]);
   
   const handleOpenDocx = (document) => {
-    console.log("apa dokumen iut:", document.id)
     setSelectedDocx(document.name_doc);
     setId(document.id)
     modal.openModal();
@@ -70,18 +69,14 @@ export default function Document({data, refreshData, me}) {
       });
       return;
     }
-
-    console.log("apa isi selected File:", no_agendaMasuk);
+    console.log("aks4s data bisakah?", data[0].documentType)
     
     const formData = new FormData();
     formData.append('file', selectedFile);
-    if (no_agendaMasuk) {
-      formData.append('no_agenda_masuk', no_agendaMasuk);
-    } else if (no_agendaKeluar) {
-      formData.append('no_agenda_keluar', no_agendaKeluar);
-    }
-
-    console.log("apa isi formDATA",formData)
+    formData.append('documentType', data[0].documentType);
+    formData.append('documentId', data[0].documentId);
+    formData.append('type_doc', type_doc)
+    
 
     try {
       Swal.fire({
@@ -146,7 +141,6 @@ export default function Document({data, refreshData, me}) {
         title: 'Berhasil!',
         text: 'Dokumen berhasil diperbarui!',
       });
-      console.log("data dokumen diperbarui!!!");
       refreshData();
     } catch (error) {
       console.error("Gagal update dokumen:", error.message);
@@ -178,6 +172,7 @@ export default function Document({data, refreshData, me}) {
     };
 
 
+const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
     return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -202,6 +197,11 @@ export default function Document({data, refreshData, me}) {
                 src={ `https://drive.google.com/file/d/${extractFileId(document.path_doc)}/preview`} 
                 className="w-full h-[400px] rounded-lg border border-gray-300"
                 />
+
+          
+                
+             
+
             </div>
            
             </div>
@@ -271,28 +271,11 @@ export default function Document({data, refreshData, me}) {
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Nomor Agenda</Label>
-                    {no_agendaKeluar ? (
-                      <Input  
-                      type="text" 
-                      id="no_agenda_keluar"
-                      name="no_agenda_keluar"
-                      value={no_agendaKeluar}
-                      readOnly
-                      />
-                    ) : (
-                      <Input  
-                      type="text" 
-                      id="no_agenda_masuk"
-                      name="no_agenda_masuk"
-                      value={no_agendaMasuk}
-                      readOnly
-                      />
-                    )}
-                  </div>
+
+                  
+                  
                   <div className="col-span-2">
-                  <Label>Nomor Agenda</Label>
+                  <Label>Nama Document</Label>
                   <p>{selectedDocx}</p>
                   </div>
 
@@ -373,9 +356,7 @@ export default function Document({data, refreshData, me}) {
                                 {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
                                 </h4>
     
-                                <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
-                                Drag and drop your PNG, JPG, WebP, SVG images here or browse
-                                </span>
+                              
     
                                 <span className="font-medium underline text-theme-sm text-brand-500">
                                 Browse File
@@ -419,27 +400,16 @@ export default function Document({data, refreshData, me}) {
                 </h5>
 
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div className="col-span-2 lg:col-span-1">
-                    <Label>Nomor Agenda</Label>
-                    {no_agendaKeluar ? (
-                      <Input  
-                      type="text" 
-                      id="no_agenda_keluar"
-                      name="no_agenda_keluar"
-                      value={no_agendaKeluar}
-                      readOnly
-                      />
-                    ) : (
-                      <Input  
-                      type="text" 
-                      id="no_agenda_masuk"
-                      name="no_agenda_masuk"
-                      value={no_agendaMasuk}
-                      readOnly
-                      />
-                    )}
-                    
-                  </div>
+
+                  <div className="col-span-2">
+                <Label htmlFor="type_doc">Tipe Dokumen</Label>
+                <Select
+                    options={typeOpt}
+                    placeholder="Select an option"
+                    onChange={handleSelectChangeType}
+                    className="dark:bg-dark-900"
+                />
+                </div>
 
                   <div className="col-span-2">
                     <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
@@ -517,9 +487,7 @@ export default function Document({data, refreshData, me}) {
                             {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
                             </h4>
 
-                            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
-                            Drag and drop your PNG, JPG, WebP, SVG images here or browse
-                            </span>
+                          
 
                             <span className="font-medium underline text-theme-sm text-brand-500">
                             Browse File
